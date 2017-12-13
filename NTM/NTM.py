@@ -14,7 +14,6 @@ def getWc(k, M, b):
     l1 = tf.norm(k,axis=0)
     l2 = tf.norm(M,axis=1)
     cosSim = tf.divide(tf.reshape(dot,[-1]), l1 * l2 + 0.001)
-
     e = tf.exp(b * cosSim)
     return tf.divide(e, tf.reduce_sum(e))
 
@@ -45,8 +44,7 @@ def getW(wm,y):
 
 M = tf.Variable(tf.random_normal([8,4]))
 O = tf.Variable(tf.random_normal([20]))
-
-w_ = tf.constant([0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0], shape=[1, 8]) # N
+w_ = tf.constant([0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0], shape=[8]) # N
 
 k = tf.tanh(map(O, M.get_shape()[1]))
 b = tf.nn.softplus(map(O, 1))
