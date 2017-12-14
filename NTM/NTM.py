@@ -42,6 +42,15 @@ def getW(wm,y):
     pow = tf.pow(wm, y)
     return  pow / tf.reduce_sum(pow)
 
+def read(M, w):
+    return tf.reshape(tf.matmul(tf.reshape(w,[1,-1]),M),[-1])
+
+def write(M, w, erase, add):
+    M = tf.multiply(M, 1 - tf.matmul(tf.reshape(w,[-1,1]),tf.reshape(erase, [1,-1])))
+    return M + tf.matmul(tf.reshape(w,[-1,1]),tf.reshape(add, [1,-1]))
+
+def getHead(O,)
+
 M = tf.Variable(tf.random_normal([8,4]))
 O = tf.Variable(tf.random_normal([20]))
 w_ = tf.constant([0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0], shape=[8]) # N
@@ -52,12 +61,18 @@ g = tf.sigmoid(map(O, 1))
 s = tf.nn.softmax(map(O, 5))
 y = tf.nn.softplus(map(O, 1)) + 1
 
-sess = tf.Session()
-sess.run(tf.global_variables_initializer())
+erase = tf.sigmoid(map(O, M.get_shape()[1]))
+add = tf.tanh(map(O, M.get_shape()[1]))
 
 wc = getWc(k, M, b)
 wg = getWg(wc, g, w_)
 wm = getWm(wg, s)
 w = getW(wm, y)
 
-print(sess.run(w))
+r = read(M, w)
+M = write(M, w, erase, add)
+
+sess = tf.Session()
+sess.run(tf.global_variables_initializer())
+print(sess.run(r))
+print(sess.run(M))
