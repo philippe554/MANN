@@ -25,5 +25,4 @@ def getNewxy(length, bitDepth):
     data = np.random.randint(2, size=(bitDepth, length))
     x = np.concatenate((np.concatenate((np.zeros((1,length)),data),axis=0),np.ones((bitDepth+1,length))), axis=1)
     y = data
-    mask = np.concatenate((np.zeros((length)),np.ones((length))), axis=0)
-    return x,y,mask
+    return x,y

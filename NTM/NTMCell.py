@@ -6,26 +6,39 @@ import helper
 from LSTMCell import *
 
 class NTMCell:
-    def __init__(self, name):
+    def __init__(self, name, inputSize, outputSize, memoryBitSize, memoryLength):
         self.name = name;
-        self.LSTM = LSTMCell("controller", 8, 4, 4)
+        self.inputSize = inputSize
+        self.outputSize = outputSize
+        self.memoryBitSize = memoryBitSize
+        self.memorylength = memoryLength
 
-    def buildTimeLayer(self, input, prevLSTMOutput, prevLSTMState, prevRead, M, wRead, wWrite, outputSize):
+        self.prevRead = helper.makeStartState("pr", [self.memoryBitSize])
+        self.M = helper.makeStartState("m", [self.memorylength, self.memoryBitSize])
+        self.wRead = helper.makeStartState("wr", [self.memorylength])
+        self.wWrite = helper.makeStartState("ww", [self.memorylength])
+
+        self.LSTM = LSTMCell("controller", self.inputSize + self.memoryBitSize, self.memoryBitSize, 4)        
+
+    def buildTimeLayer(self, input):
+        assert(len(input.get_shape()) == 1 and input.get_shape()[0] == self.inputSize)
+
         with tf.variable_scope(self.name, reuse=True):
-            I = tf.concat([input, prevRead], axis=0)
-            LSTMOuput, LSTMState = self.LSTM.buildTimeLayer(I, prevLSTMOutput, prevLSTMState)
+            I = tf.concat([input, self.prevRead], axis=0)
+            LSTMOuput = self.LSTM.buildTimeLayer(I)
 
-            wRead = self.processHead(LSTMOuput, M, wRead, "read")
-            wWrite = self.processHead(LSTMOuput, M, wWrite, "write")
+            self.wRead = self.processHead(LSTMOuput, self.M, self.wRead, "read")
+            self.wWrite = self.processHead(LSTMOuput, self.M, self.wWrite, "write")
 
-            R = self.read(M, wRead)
-            M = self.write(LSTMOuput, M, wWrite, "write")
+            R = self.read(self.M, self.wRead)
+            self.M = self.write(LSTMOuput, self.M, self.wWrite, "write")
 
             OR = tf.concat([LSTMOuput,R], 0)
 
-            output = helper.map("combine", OR, outputSize)
+            output = helper.map("combine", OR, self.outputSize)
 
-            return LSTMOuput, LSTMState, output, R, M, wRead, wWrite
+            self.prevRead = R
+            return output
 
     def processHead(self, O, M, w_, name):
         with tf.variable_scope(name, reuse=True):
