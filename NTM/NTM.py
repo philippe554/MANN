@@ -35,7 +35,7 @@ accuracy = tf.reduce_mean(tf.cast(tf.equal(_y,p), tf.float32))
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
-    for i in range(20000):
+    for i in range(10000):
         X,Y = helper.getNewxy(length, bitDepth)
         trainStep.run(feed_dict={x: X, _y: Y})
 

@@ -25,17 +25,23 @@ class NTMCell:
 
         with tf.variable_scope(self.name, reuse=True):
             I = tf.concat([input, self.prevRead], axis=0)
+            #I = tf.Print(I, [I], "I:", summarize = 100)
             LSTMOuput = self.LSTM.buildTimeLayer(I)
+            #LSTMOuput = tf.Print(LSTMOuput, [LSTMOuput], "LSTMOuput:", summarize = 100)
 
             self.wRead = self.processHead(LSTMOuput, self.M, self.wRead, "read")
             self.wWrite = self.processHead(LSTMOuput, self.M, self.wWrite, "write")
 
+            #self.wRead = tf.Print(self.wRead, [self.wRead], "self.wRead:", summarize = 100)
+
             R = self.read(self.M, self.wRead)
             self.M = self.write(LSTMOuput, self.M, self.wWrite, "write")
+            #R = tf.Print(R, [R], "R:", summarize = 100)
 
             OR = tf.concat([LSTMOuput,R], 0)
 
             output = helper.map("combine", OR, self.outputSize)
+            #output = tf.Print(output, [output], "output:", summarize = 100)
 
             self.prevRead = R
             return output
@@ -47,21 +53,25 @@ class NTMCell:
             g = tf.sigmoid(helper.map("map_g", O, 1))
             s = tf.nn.softmax(helper.map("map_s", O, 5))
             y = tf.nn.softplus(helper.map("map_y", O, 1)) + 1
+            #y = tf.Print(y, [y], "y:", summarize = 100)
 
+            #M = tf.Print(M, [M], "M:", summarize = 100)
             wc = self.getWc(k, M, b)
+            #wc = tf.Print(wc, [wc], "wc:", summarize = 100)
             wg = self.getWg(wc, g, w_)
+            #wg = tf.Print(wg, [wg], "wg:", summarize = 100)
             wm = self.getWm(wg, s)
+            #wm = tf.Print(wm, [wm], "wm:", summarize = 100)
             w = self.getW(wm, y)
-
-            return w
+            #w = tf.Print(w, [w], "w:", summarize = 100)
+            return wm
 
     def getWc(self, k, M, b):
         dot = tf.matmul(M, tf.reshape(k, [-1, 1]))
         l1 = tf.norm(k,axis=0)
         l2 = tf.norm(M,axis=1)
         cosSim = tf.divide(tf.reshape(dot,[-1]), l1 * l2 + 0.001)
-        e = tf.exp(b * cosSim)
-        return tf.divide(e, tf.reduce_sum(e))
+        return tf.nn.softmax((b * cosSim) + 0.001)
 
     def getWg(self, wc, g, w_):
         gs = tf.squeeze(g)
@@ -86,7 +96,7 @@ class NTMCell:
 
     def getW(self, wm,y):
         pow = tf.pow(wm, y)
-        return  pow / tf.reduce_sum(pow)
+        return  pow / (tf.reduce_sum(pow)+0.001)
 
     def read(self, M, w):
         return tf.reshape(tf.matmul(tf.reshape(w,[1,-1]),M),[-1])

@@ -17,18 +17,22 @@ class LSTMCell:
 
     def buildTimeLayer(self, input):
         assert(len(input.get_shape()) == 1 and input.get_shape()[0] == self.inputSize)
+        #input = tf.Print(input, [input], "Input:", summarize = 100)
 
         with tf.variable_scope(self.name):
             cc = tf.concat([input,self.prevOutput], axis=0)
+            #cc = tf.Print(cc, [cc], "cc:", summarize = 100)
 
             forgetGate = tf.sigmoid(helper.map("forgetGate", cc, self.stateSize))
             saveGate = tf.sigmoid(helper.map("saveGate", cc, self.stateSize))           
             outputGate = tf.sigmoid(helper.map("outputGate", cc, self.stateSize))
 
             update = tf.tanh(helper.map("update", cc, self.stateSize))
+            #update = tf.Print(update, [update], "update:", summarize = 100)
 
             state = (self.prevState * forgetGate) + (saveGate * update)
             output = outputGate * tf.tanh(state)
+            #output = tf.Print(output, [output], "output:", summarize = 100)
 
             assert(len(output.get_shape()) == 1 and output.get_shape()[0] == self.outputSize)
             assert(len(state.get_shape()) == 1 and state.get_shape()[0] == self.stateSize)
