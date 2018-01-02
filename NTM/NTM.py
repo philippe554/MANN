@@ -20,6 +20,7 @@ def makeNTM(x, mask):
 
 length = 8
 bitDepth = 4
+batch = 1
 
 x = tf.placeholder(tf.float32, shape=(bitDepth + 1, length * 2))
 _y = tf.placeholder(tf.float32, shape=(bitDepth, length))
