@@ -18,30 +18,23 @@ class NTMCell:
         self.wRead = helper.makeStartState("wr", [self.memorylength])
         self.wWrite = helper.makeStartState("ww", [self.memorylength])
 
-        self.LSTM = LSTMCell("controller", self.inputSize + self.memoryBitSize, self.memoryBitSize, 4)        
+        self.LSTM = LSTMCell("controller", self.inputSize + self.memoryBitSize, self.memoryBitSize, self.memoryBitSize)        
 
     def buildTimeLayer(self, input):
         assert(len(input.get_shape()) == 1 and input.get_shape()[0] == self.inputSize)
 
         with tf.variable_scope(self.name, reuse=True):
             I = tf.concat([input, self.prevRead], axis=0)
-            #I = tf.Print(I, [I], "I:", summarize = 100)
             LSTMOuput = self.LSTM.buildTimeLayer(I)
-            #LSTMOuput = tf.Print(LSTMOuput, [LSTMOuput], "LSTMOuput:", summarize = 100)
 
             self.wRead = self.processHead(LSTMOuput, self.M, self.wRead, "read")
             self.wWrite = self.processHead(LSTMOuput, self.M, self.wWrite, "write")
 
-            #self.wRead = tf.Print(self.wRead, [self.wRead], "self.wRead:", summarize = 100)
-
             R = self.read(self.M, self.wRead)
             self.M = self.write(LSTMOuput, self.M, self.wWrite, "write")
-            #R = tf.Print(R, [R], "R:", summarize = 100)
 
             OR = tf.concat([LSTMOuput,R], 0)
-
             output = helper.map("combine", OR, self.outputSize)
-            #output = tf.Print(output, [output], "output:", summarize = 100)
 
             self.prevRead = R
             return output

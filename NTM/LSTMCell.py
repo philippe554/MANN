@@ -12,27 +12,22 @@ class LSTMCell:
         self.outputSize = outputSize
         self.stateSize = stateSize
 
-        self.prevOutput = helper.makeStartState("pLSTMo", [self.outputSize])
-        self.prevState = helper.makeStartState("pLSTMs", [self.stateSize])
+        helper.makeStartState("pLSTMo", [self.outputSize])
+        helper.makeStartState("pLSTMs", [self.stateSize])
 
     def buildTimeLayer(self, input):
         assert(len(input.get_shape()) == 1 and input.get_shape()[0] == self.inputSize)
-        #input = tf.Print(input, [input], "Input:", summarize = 100)
 
         with tf.variable_scope(self.name):
             cc = tf.concat([input,self.prevOutput], axis=0)
-            #cc = tf.Print(cc, [cc], "cc:", summarize = 100)
 
             forgetGate = tf.sigmoid(helper.map("forgetGate", cc, self.stateSize))
             saveGate = tf.sigmoid(helper.map("saveGate", cc, self.stateSize))           
             outputGate = tf.sigmoid(helper.map("outputGate", cc, self.stateSize))
-
             update = tf.tanh(helper.map("update", cc, self.stateSize))
-            #update = tf.Print(update, [update], "update:", summarize = 100)
 
             state = (self.prevState * forgetGate) + (saveGate * update)
             output = outputGate * tf.tanh(state)
-            #output = tf.Print(output, [output], "output:", summarize = 100)
 
             assert(len(output.get_shape()) == 1 and output.get_shape()[0] == self.outputSize)
             assert(len(state.get_shape()) == 1 and state.get_shape()[0] == self.stateSize)
@@ -40,3 +35,35 @@ class LSTMCell:
             self.prevOutput = output
             self.prevState = state
             return output
+
+    def buildTimeLayerBatch(self, input, first):
+        assert(len(input.get_shape()) == 2 and input.get_shape()[1] == self.inputSize)
+
+        if first:
+            setupStart(input)
+
+        with tf.variable_scope(self.name):
+            cc = tf.concat([input,self.prevOutput], axis=1)
+
+            forgetGate = tf.sigmoid(helper.mapBatch("forgetGate", cc, self.stateSize))
+            saveGate = tf.sigmoid(helper.mapBatch("saveGate", cc, self.stateSize))           
+            outputGate = tf.sigmoid(helper.mapBatch("outputGate", cc, self.stateSize))
+            update = tf.tanh(helper.mapBatch("update", cc, self.stateSize))
+
+            state = (self.prevState * forgetGate) + (saveGate * update)
+            output = outputGate * tf.tanh(state)
+
+            assert(len(output.get_shape()) == 2 and output.get_shape()[1] == self.outputSize)
+            assert(len(state.get_shape()) == 2 and state.get_shape()[1] == self.stateSize)
+
+            self.prevOutput = output
+            self.prevState = state
+            return output
+
+    def setupStart(input):
+        with tf.variable_scope(self.name):
+            self.prevOutput = tf.get_variable("pLSTMo", initializer=tf.random_normal([self.outputSize]))    
+            self.prevState = tf.get_variable("pLSTMs", initializer=tf.random_normal([self.stateSize]))
+
+            self.prevOutput = tf.reshape(tf.tile(self.prevOutput, [tf.shape(input)[0]]+[1]), [tf.shape(input)[0]] + [self.outputSize]) 
+            self.prevState = tf.reshape(tf.tile(self.prevState, [tf.shape(input)[0]]+[1]), [tf.shape(input)[0]] + [self.stateSize]) 
