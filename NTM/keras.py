@@ -1,5 +1,6 @@
 import tensorflow as tf
-from keras import backend as K
+#from keras import backend as K
+import keras as K
 import pandas as pd
 import numpy as np
 from NTMCell import *

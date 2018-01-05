@@ -22,7 +22,7 @@ def mapBatch(name, input, outputSize, r=tf.AUTO_REUSE):
             return tf.squeeze(tf.matmul(input, m) + b, [0])
     else:
         with tf.variable_scope(name, reuse=r):
-            inputSize = int(input.get_shape()[1])
+            inputSize = int(input.get_shape()[1].value)
             input = tf.expand_dims(input, 1)
             m = tf.get_variable(name+"M", initializer=tf.random_normal([inputSize,int(outputSize)]))
             b = tf.get_variable(name+"B", initializer=tf.random_normal([int(outputSize)]))
