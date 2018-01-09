@@ -81,3 +81,15 @@ def getNewxyBatch(length, bitDebth, amount):
         x.append(X)
         y.append(Y)
     return x,y
+
+def printStats(variables):
+    print("Trainable variables:")
+    total_parameters = 0
+    for variable in variables:
+        shape = variable.get_shape()
+        print(str(variable.name)+": "+str(shape))
+        variable_parameters = 1
+        for dim in shape:
+            variable_parameters *= dim.value
+        total_parameters += variable_parameters
+    print("Number of parameters: " + str(total_parameters))

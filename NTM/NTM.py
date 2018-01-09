@@ -8,7 +8,7 @@ length = 5
 bitDepth = 3
 
 def makeNTM(x, mask):  
-    ntmCell = NTMCell("ntm", bitDepth, bitDepth, bitDepth, length*2)
+    ntmCell = NTMCell("ntm", bitDepth, bitDepth, bitDepth*2, length*2)
     output = []
 
     for i in range(0,x.get_shape()[0]):
@@ -32,6 +32,8 @@ trainStep = tf.train.AdamOptimizer().minimize(crossEntropy)
 
 p = tf.round(tf.sigmoid(y))
 accuracy = tf.reduce_mean(tf.cast(tf.equal(_y,p), tf.float32))
+
+helper.printStats(tf.trainable_variables())
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
