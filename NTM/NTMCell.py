@@ -41,7 +41,7 @@ class NTMCell:
 
     def processHead(self, O, M, w_, name):
         with tf.variable_scope(name, reuse=True):
-            k = tf.tanh(helper.map("map_k", O, M.get_shape()[1]))
+            k = tf.nn.softplus(helper.map("map_k", O, M.get_shape()[1]))
             b = tf.nn.softplus(helper.map("map_b", O, 1))
             g = tf.sigmoid(helper.map("map_g", O, 1))
             s = tf.nn.softmax(helper.map("map_s", O, 5))
