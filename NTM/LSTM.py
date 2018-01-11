@@ -4,46 +4,54 @@ import numpy as np
 from LSTMCell import *
 import helper
 
-from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
+length = 5
+bitDepth = 3
 
-def makeLSTM(x):  
-    ntmCell = LSTMCell("ntm", 28, 10, 10)
+def makeLSTM(x, mask):  
+    lstmCell = LSTMCell("lstm", bitDepth+1, 12, 12)
     output = []
 
-    for i in range(0,28):
+    for i in range(0,x.get_shape()[1]):
         print("Building step: "+str(i+1))
-        input = tf.squeeze(tf.slice(x,[0,i,0],[-1,1,28]), axis=1)
-        O = ntmCell.buildTimeLayerBatch(input, i==0)
+        input = tf.squeeze(tf.slice(x, [0,i,0], [-1,1,-1]),[1])
+        O = lstmCell.buildTimeLayerBatch(input, bool(i==0))
         
-        output.append(tf.expand_dims(O, 0))
+        if(mask[i]==1):
+            with tf.variable_scope("lstm"):
+                O = helper.mapBatch("outputMap", O, bitDepth)
+                print(O.get_shape())
+                output.append(tf.expand_dims(O, 0))
 
-    #return tf.concat(output, axis=0)
-    return tf.squeeze(output[-1])
+    return tf.concat(output, axis=0)
 
-x = tf.placeholder(tf.float32, shape=(None, 28, 28))
-_y = tf.placeholder(tf.float32, shape=(None, 10))
+x = tf.placeholder(tf.float32, shape=(None, length * 2, bitDepth+1))
+_y = tf.placeholder(tf.float32, shape=(None, length, bitDepth))
 
-y = makeLSTM(x)
+#mask = np.concatenate((np.zeros((length*2)), np.array([0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1])), axis=0)
+mask = np.concatenate((np.zeros((length)), np.ones((length))), axis=0)
+y = makeLSTM(x, mask)
 
-crossEntropy = tf.nn.softmax_cross_entropy_with_logits(labels=_y, logits=y)
+crossEntropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=_y, logits=y)
 trainStep = tf.train.AdamOptimizer().minimize(crossEntropy)
 
-p = tf.equal(tf.argmax(y, 0), tf.argmax(_y, 0))
-accuracy = tf.reduce_mean(tf.cast(p, tf.float32))
+p = tf.round(tf.sigmoid(y))
+accuracy = tf.reduce_mean(tf.cast(tf.equal(_y,p), tf.float32))
+
+helper.printStats(tf.trainable_variables())
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
-    sum=0.0
+    for i in range(10000):
+        #X,Y = helper.getNewxyBatch(length, bitDepth,100)
+        #trainStep.run(feed_dict={x: X, _y: Y})
 
-    for step in range(0, 1000000):
-        batch_x, batch_y = mnist.train.next_batch(1)
-        batch_x = batch_x.reshape((1, 28, 28))
-        batch_y = batch_y.reshape((1, 10))
-        sess.run(trainStep, feed_dict={x: batch_x, _y: batch_y})
+        #for j in range(1000):
+        X,Y = helper.getNewxyBatch(length, bitDepth, 1000)
+        trainStep.run(feed_dict={x: X, _y: Y})
 
-        sum += sess.run(accuracy, feed_dict={x: batch_x, _y: batch_y})
-        if(step%1000 == 0):
-            print(str(step)+": "+str(sum/1000.0))
-            sum=0
-            
+        sum = 0.0
+        #for j in range(100):
+        X,Y = helper.getNewxyBatch(length, bitDepth, 100)
+        sum += sess.run(accuracy, feed_dict={x: X, _y: Y})
+
+        print("Training batch: " + str(i+1) + " | AVG accuracy: " + str(sum/100))

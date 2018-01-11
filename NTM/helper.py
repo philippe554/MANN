@@ -15,18 +15,27 @@ def map(name, input, outputSize, r=tf.AUTO_REUSE):
 def mapBatch(name, input, outputSize, r=tf.AUTO_REUSE):
     if(len(input.get_shape())==1):
         with tf.variable_scope(name, reuse=r):
-            inputSize = int(input.get_shape()[0])
+            inputSize = input.get_shape()[0]
             input = tf.expand_dims(input, 0)
             m = tf.get_variable(name+"M", initializer=tf.random_normal([inputSize,int(outputSize)]))
             b = tf.get_variable(name+"B", initializer=tf.random_normal([int(outputSize)]))
             return tf.squeeze(tf.matmul(input, m) + b, [0])
     else:
         with tf.variable_scope(name, reuse=r):
-            inputSize = int(input.get_shape()[1].value)
+            inputSize = input.get_shape()[1].value
+            print("Map:")
+            print(input.get_shape())
             input = tf.expand_dims(input, 1)
+            print(input.get_shape())
             m = tf.get_variable(name+"M", initializer=tf.random_normal([inputSize,int(outputSize)]))
             b = tf.get_variable(name+"B", initializer=tf.random_normal([int(outputSize)]))
-            return tf.squeeze(tf.matmul(input, m) + b, [1])
+            mm = tf.matmul(input, m)
+            print(mm.get_shape())
+            mmb = mm+b
+            print(mmb.get_shape())
+            mmbs = tf.squeeze(mmb, [1])
+            print(mmbs.get_shape())
+            return mmbs
 
 def makeStartState(name, shape):
     with tf.variable_scope("init"):
@@ -49,8 +58,8 @@ def makeStartStateBatch(name, batchSize, shape):
         return tf.expand_dims(tf.ones(shape, tf.float32), 0) * O
 
 def getNewxy(length, bitDepth):
-    data = np.random.randint(2, size=(bitDepth, length))
-    x = np.concatenate((np.concatenate((np.zeros((1,length)),data),axis=0),np.ones((bitDepth+1,length))), axis=1)
+    data = np.random.randint(2, size=(length, bitDepth))
+    x = np.concatenate((np.concatenate((np.zeros((length,1)),data),axis=1),np.ones((length,bitDepth+1))), axis=0)
     y = data
     return x,y
 

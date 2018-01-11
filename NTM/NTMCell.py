@@ -6,38 +6,37 @@ import helper
 from LSTMCell import *
 
 class NTMCell:
-    def __init__(self, name, inputSize, outputSize, memoryBitSize, memoryLength):
+    def __init__(self, name, inputSize, outputSize, memoryBitSize, memoryLength, controllerSize):
         self.name = name;
         self.inputSize = inputSize
         self.outputSize = outputSize
         self.memoryBitSize = memoryBitSize
         self.memorylength = memoryLength
+        self.controllerSize = controllerSize
 
-        self.prevRead = helper.makeStartState("pr", [self.memoryBitSize])
-        self.M = helper.makeStartState("m", [self.memorylength, self.memoryBitSize])
-        self.wRead = helper.makeStartState("wr", [self.memorylength])
-        self.wWrite = helper.makeStartState("ww", [self.memorylength])
+        with tf.variable_scope(self.name, reuse=True):
+            self.prevRead = helper.makeStartState("pr", [self.memoryBitSize])
+            self.M = helper.makeStartState("m", [self.memorylength, self.memoryBitSize])
+            self.wRead = helper.makeStartState("wr", [self.memorylength])
+            self.wWrite = helper.makeStartState("ww", [self.memorylength])
 
-        self.LSTM = LSTMCell("controller", self.inputSize + self.memoryBitSize, self.memoryBitSize, self.memoryBitSize)        
+            self.LSTM = LSTMCell("controller", self.controllerSize, self.controllerSize, self.controllerSize)        
 
     def buildTimeLayer(self, input):
         assert(len(input.get_shape()) == 1 and input.get_shape()[0] == self.inputSize)
 
         with tf.variable_scope(self.name, reuse=True):
-            I = tf.concat([input, self.prevRead], axis=0)
+            I = tf.tanh(helper.map("prep", tf.concat([input, self.prevRead], axis=0), self.controllerSize))
             LSTMOuput = self.LSTM.buildTimeLayer(I)
 
             self.wRead = self.processHead(LSTMOuput, self.M, self.wRead, "read")
             self.wWrite = self.processHead(LSTMOuput, self.M, self.wWrite, "write")
 
-            R = self.read(self.M, self.wRead)
+            self.prevRead = self.read(self.M, self.wRead)
             self.M = self.write(LSTMOuput, self.M, self.wWrite, "write")
 
-            OR = tf.concat([LSTMOuput,R], 0)
-            output = helper.map("combine", OR, self.outputSize)
-
-            self.prevRead = R
-            return output
+            outputGate = tf.sigmoid(helper.map("outputGate", LSTMOuput, self.memoryBitSize))
+            return helper.map("output", outputGate * self.prevRead, self.outputSize) #no final sigmoid/tanh
 
     def processHead(self, O, M, w_, name):
         with tf.variable_scope(name, reuse=True):

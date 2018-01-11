@@ -12,8 +12,9 @@ class LSTMCell:
         self.outputSize = outputSize
         self.stateSize = stateSize
 
-        self.prevOutput = tf.get_variable("pLSTMo", initializer=tf.random_normal([self.outputSize]))    
-        self.prevState = tf.get_variable("pLSTMs", initializer=tf.random_normal([self.stateSize]))
+        #with tf.variable_scope(self.name):
+        #    self.prevOutput = tf.get_variable("pLSTMo", initializer=tf.random_normal([self.outputSize]))    
+        #    self.prevState = tf.get_variable("pLSTMs", initializer=tf.random_normal([self.stateSize]))
 
     def buildTimeLayer(self, input):
         assert(len(input.get_shape()) == 1 and input.get_shape()[0] == self.inputSize)
@@ -43,17 +44,22 @@ class LSTMCell:
             self.setupStart(input)
 
         with tf.variable_scope(self.name):
-            print(input.get_shape())
-            print(self.prevOutput.get_shape())
             cc = tf.concat([input,self.prevOutput], axis=1)
+
+            print(cc.get_shape())
 
             forgetGate = tf.sigmoid(helper.mapBatch("forgetGate", cc, self.stateSize))
             saveGate = tf.sigmoid(helper.mapBatch("saveGate", cc, self.stateSize))           
             outputGate = tf.sigmoid(helper.mapBatch("outputGate", cc, self.stateSize))
             update = tf.tanh(helper.mapBatch("update", cc, self.stateSize))
 
+            print(outputGate.get_shape())
+           
+
             state = (self.prevState * forgetGate) + (saveGate * update)
             output = outputGate * tf.tanh(state)
+
+            print(state.get_shape())
 
             #assert(len(output.get_shape()) == 2 and output.get_shape()[1] == self.outputSize)
             #assert(len(state.get_shape()) == 2 and state.get_shape()[1] == self.stateSize)
