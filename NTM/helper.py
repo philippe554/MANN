@@ -5,10 +5,10 @@ import random
 def map(name, input, outputSize, r=tf.AUTO_REUSE):
     with tf.variable_scope(name, reuse=r):
         inputSize = int(input.get_shape()[0])
-        m = tf.get_variable(name+"M", initializer=tf.random_normal([inputSize,int(outputSize)]))
+        m = tf.get_variable("M", initializer=tf.random_normal([inputSize,int(outputSize)]))
         i1 = tf.reshape(input, [1,-1])
         i2 = tf.matmul(i1, m)
-        b = tf.get_variable(name+"B", initializer=tf.random_normal(i2.get_shape()))
+        b = tf.get_variable("B", initializer=tf.random_normal(i2.get_shape()))
         i3 = i2 + b
         return tf.reshape(i3, [-1])
 
@@ -23,19 +23,9 @@ def mapBatch(name, input, outputSize, r=tf.AUTO_REUSE):
     else:
         with tf.variable_scope(name, reuse=r):
             inputSize = input.get_shape()[1].value
-            print("Map:")
-            print(input.get_shape())
-            input = tf.expand_dims(input, 1)
-            print(input.get_shape())
             m = tf.get_variable(name+"M", initializer=tf.random_normal([inputSize,int(outputSize)]))
             b = tf.get_variable(name+"B", initializer=tf.random_normal([int(outputSize)]))
-            mm = tf.matmul(input, m)
-            print(mm.get_shape())
-            mmb = mm+b
-            print(mmb.get_shape())
-            mmbs = tf.squeeze(mmb, [1])
-            print(mmbs.get_shape())
-            return mmbs
+            return tf.matmul(input, m) + b
 
 def makeStartState(name, shape):
     with tf.variable_scope("init"):
