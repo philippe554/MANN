@@ -3,17 +3,18 @@ import pandas as pd
 import numpy as np
 
 import helper
+from RNN import *
 
-class LSTMCell:
-    def __init__(self, name, inputSize, stateSize):
-        self.name = name;
-        self.inputSize = inputSize
+class LSTMCell(RNN):
+    def __init__(self, name, stateSize):
+        super().__init__(name)
         self.stateSize = stateSize
 
     def buildTimeLayer(self, input, first=False):
         with tf.variable_scope(self.name):
             if first:
-                self.setupStart(input)
+                self.prevState = self.getTrainableConstant("startState", self.stateSize, tf.shape(input)[0])
+                self.prevOutput = tf.tanh(self.prevState)
 
             cc = tf.concat([input,self.prevOutput], axis=-1)
 
@@ -25,11 +26,3 @@ class LSTMCell:
             self.prevState = (self.prevState * forgetGate) + (saveGate * update)
             self.prevOutput = outputGate * tf.tanh(self.prevState)
             return self.prevOutput
-
-    def setupStart(self, input):
-        self.prevState = tf.get_variable("startState", initializer=tf.random_normal([self.stateSize]))
-
-        if(len(input.get_shape())==2):
-            self.prevState = tf.reshape(tf.tile(self.prevState, [tf.shape(input)[0]]), [tf.shape(input)[0]] + [self.stateSize])
-
-        self.prevOutput = tf.tanh(self.prevState)
