@@ -28,12 +28,12 @@ class RNN:
                         states[inputMask[i]] = self.getTrainableConstant("dummyInput"+str(inputMask[i]), x.get_shape()[-1], batchSize)
                 input = states[inputMask[i]]
 
-            O = self.buildTimeLayer(input, bool(i==0))
+            O = self.buildTimeLayer(input, batchSize, bool(i==0))
         
             if(outputMask[i]==1):
                 if(outputSize is not None):
                     with tf.variable_scope(self.name):
-                        O = helper.mapBatch("outputMap", O, outputSize)
+                        O = helper.map("outputMap", O, outputSize)
                 output.append(tf.expand_dims(O, -2))
 
         return tf.concat(output, axis=-2)

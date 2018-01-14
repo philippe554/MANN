@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>5d39565f-46c0-455f-8f8d-9a022e33d40c</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>LSTM.py</StartupFile>
+    <StartupFile>NTM.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>

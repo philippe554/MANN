@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 import random
 
-def map(name, input, outputSize, r=tf.AUTO_REUSE):
+def mapOld(name, input, outputSize, r=tf.AUTO_REUSE):
     with tf.variable_scope(name, reuse=r):
         inputSize = int(input.get_shape()[0])
         m = tf.get_variable("M", initializer=tf.random_normal([inputSize,int(outputSize)]))
@@ -12,7 +12,7 @@ def map(name, input, outputSize, r=tf.AUTO_REUSE):
         i3 = i2 + b
         return tf.reshape(i3, [-1])
 
-def mapBatch(name, input, outputSize, r=tf.AUTO_REUSE):
+def map(name, input, outputSize, r=tf.AUTO_REUSE):
     if(len(input.get_shape())==1):
         with tf.variable_scope(name, reuse=r):
             inputSize = input.get_shape()[0]
@@ -92,3 +92,17 @@ def printStats(variables):
             variable_parameters *= dim.value
         total_parameters += variable_parameters
     print("Number of parameters: " + str(total_parameters))
+
+def check(t, shape):
+    if(len(t.get_shape())!=len(shape)):
+        return False
+    for i,v in enumerate(shape):
+        if(v is None and t.get_shape().as_list()[i] is not None):
+            return False
+        if(v is not None and t.get_shape().as_list()[i] is None):
+            return False
+        if(v is not None and t.get_shape().as_list()[i] is not None):
+            if(t.get_shape().as_list()[i] != v):
+                return False
+    return True
+

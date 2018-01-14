@@ -10,18 +10,18 @@ class LSTMCell(RNN):
         super().__init__(name)
         self.stateSize = stateSize
 
-    def buildTimeLayer(self, input, first=False):
+    def buildTimeLayer(self, input, batchSize=None, first=False):
         with tf.variable_scope(self.name):
             if first:
-                self.prevState = self.getTrainableConstant("startState", self.stateSize, tf.shape(input)[0])
+                self.prevState = self.getTrainableConstant("startState", self.stateSize, batchSize)
                 self.prevOutput = tf.tanh(self.prevState)
 
             cc = tf.concat([input,self.prevOutput], axis=-1)
 
-            forgetGate = tf.sigmoid(helper.mapBatch("forgetGate", cc, self.stateSize))
-            saveGate = tf.sigmoid(helper.mapBatch("saveGate", cc, self.stateSize))           
-            outputGate = tf.sigmoid(helper.mapBatch("outputGate", cc, self.stateSize))
-            update = tf.tanh(helper.mapBatch("update", cc, self.stateSize))           
+            forgetGate = tf.sigmoid(helper.map("forgetGate", cc, self.stateSize))
+            saveGate = tf.sigmoid(helper.map("saveGate", cc, self.stateSize))           
+            outputGate = tf.sigmoid(helper.map("outputGate", cc, self.stateSize))
+            update = tf.tanh(helper.map("update", cc, self.stateSize))           
 
             self.prevState = (self.prevState * forgetGate) + (saveGate * update)
             self.prevOutput = outputGate * tf.tanh(self.prevState)
