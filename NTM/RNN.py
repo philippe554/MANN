@@ -23,12 +23,12 @@ class RNN:
                 input = tf.squeeze(tf.slice(x, [0,inputCounter,0], [-1,1,-1]),[1])
                 inputCounter+=1
             else:
-                if(inputMask[i] not in states):
+                if inputMask[i] not in states:
                     with tf.variable_scope(self.name):
                         states[inputMask[i]] = self.getTrainableConstant("dummyInput"+str(inputMask[i]), x.get_shape()[-1], batchSize)
                 input = states[inputMask[i]]
 
-            O = self.buildTimeLayer(input, batchSize, bool(i==0))
+            O = self.buildTimeLayer(input, bool(i==0))
         
             if(outputMask[i]==1):
                 if(outputSize is not None):

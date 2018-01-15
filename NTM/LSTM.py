@@ -6,12 +6,15 @@ import helper
 import random
 
 length = 8
-bitDepth = 4
-inputMask = [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1]
-outputMask = inputMask
+bitDepth = 5
+inputMask = [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2]
+outputMask = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1]
 
-x = tf.placeholder(tf.float32, shape=(None, length * 2, bitDepth+1))
-_y = tf.placeholder(tf.float32, shape=(None, length, bitDepth))
+#inputMask = [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1]
+#outputMask = [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1]
+
+x = tf.placeholder(tf.float32, shape=(None, inputMask.count(0), bitDepth))
+_y = tf.placeholder(tf.float32, shape=(None, outputMask.count(1), bitDepth))
 y = LSTMCell("lstm", 40).build(x, inputMask=inputMask, outputMask=outputMask, outputSize=bitDepth)
 
 crossEntropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=_y, logits=y)

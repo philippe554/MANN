@@ -49,7 +49,7 @@ def makeStartStateBatch(name, batchSize, shape):
 
 def getNewxy(length, bitDepth):
     data = np.random.randint(2, size=(length, bitDepth))
-    x = np.concatenate((np.concatenate((np.zeros((length,1)),data),axis=1),np.ones((length,bitDepth+1))), axis=0)
+    x = data # np.concatenate((np.concatenate((np.zeros((length,1)),data),axis=1),np.ones((length,bitDepth+1))), axis=0)
     y = data
     return x,y
 
@@ -93,7 +93,9 @@ def printStats(variables):
         total_parameters += variable_parameters
     print("Number of parameters: " + str(total_parameters))
 
-def check(t, shape):
+def check(t, shape, isBatch=False):
+    if(isBatch):
+        shape = [None] + shape
     if(len(t.get_shape())!=len(shape)):
         return False
     for i,v in enumerate(shape):

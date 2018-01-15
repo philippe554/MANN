@@ -10,9 +10,14 @@ class LSTMCell(RNN):
         super().__init__(name)
         self.stateSize = stateSize
 
-    def buildTimeLayer(self, input, batchSize=None, first=False):
+    def buildTimeLayer(self, input, first=False):
         with tf.variable_scope(self.name):
             if first:
+                if(len(input.get_shape())==2):
+                    batchSize = tf.shape(input)[0]
+                else:
+                    batchSize = None
+
                 self.prevState = self.getTrainableConstant("startState", self.stateSize, batchSize)
                 self.prevOutput = tf.tanh(self.prevState)
 

@@ -32,9 +32,7 @@
     <Compile Include="LSTMCell.py" />
     <Compile Include="NTM.py" />
     <Compile Include="NTMCell.py" />
-    <Compile Include="RNNCell.py">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="RNN.py" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="Global|ContinuumAnalytics|Anaconda36-64" />

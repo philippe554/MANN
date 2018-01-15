@@ -12,11 +12,18 @@ class NTMCell(RNN):
         self.outputSize = outputSize
         self.memoryBitSize = memoryBitSize
         self.memorylength = memoryLength
-        self.controllerSize = controllerSize                    
+        self.controllerSize = controllerSize
 
-    def buildTimeLayer(self, input, batchSize=None, first=False):
+    def buildTimeLayer(self, input, first=False):
         with tf.variable_scope(self.name):
             if first:
+                if(len(input.get_shape())==2):
+                    batchSize = tf.shape(input)[0]
+                    self.batchCheck = True
+                else:
+                    batchSize = None
+                    self.batchCheck = False
+
                 self.LSTM = LSTMCell("controller", self.controllerSize)
 
                 self.prevRead = self.getTrainableConstant("ssPrevRead", self.memoryBitSize, batchSize)
@@ -25,7 +32,7 @@ class NTMCell(RNN):
                 self.wWrite = self.getTrainableConstant("sswWrite", self.memorylength, batchSize)
 
             I = tf.tanh(helper.map("prep", tf.concat([input, self.prevRead], axis=-1), self.controllerSize))
-            LSTMOuput = self.LSTM.buildTimeLayer(I, batchSize, first)
+            LSTMOuput = self.LSTM.buildTimeLayer(I, first)
 
             self.wRead = self.processHead(LSTMOuput, self.M, self.wRead, "read")
             self.wWrite = self.processHead(LSTMOuput, self.M, self.wWrite, "write")
@@ -36,8 +43,7 @@ class NTMCell(RNN):
             add = tf.tanh(helper.map("map_add", LSTMOuput, self.memoryBitSize))
             self.M = self.write(erase, add, self.M, self.wWrite)
 
-            outputGate = tf.sigmoid(helper.map("outputGate", LSTMOuput, self.memoryBitSize))
-            return helper.map("output", outputGate * self.prevRead, self.outputSize) #no final sigmoid/tanh
+            return helper.map("output", LSTMOuput, self.outputSize)
 
     def processHead(self, O, M, w_, name):
         with tf.variable_scope(name, reuse=True):
@@ -54,32 +60,32 @@ class NTMCell(RNN):
             return w
 
     def getWc(self, k, M, b):
-        assert helper.check(k, [None, self.memoryBitSize])
-        assert helper.check(M, [None, self.memorylength, self.memoryBitSize])
-        assert helper.check(b, [None, 1])
+        assert helper.check(k, [self.memoryBitSize], self.batchCheck)
+        assert helper.check(M, [self.memorylength, self.memoryBitSize], self.batchCheck)
+        assert helper.check(b, [1], self.batchCheck)
 
         dot = tf.squeeze(tf.matmul(M, tf.expand_dims(k, axis=-1)), axis=-1)
-        l1 = tf.norm(k, axis=-1)
-        l2 = tf.norm(M, axis=-1)
-        cosSim = tf.divide(dot, l1 * l2 + 0.001)
+        l1 = tf.sqrt(tf.reduce_sum(tf.pow(k, 2), axis=-1, keep_dims=True))
+        l2 = tf.sqrt(tf.reduce_sum(tf.pow(M, 2), axis=-1))
+        cosSim = tf.divide(dot, l1 * l2 + 0.001)    
         result = tf.nn.softmax((b * cosSim) + 0.001)
 
-        assert helper.check(result, [None, self.memorylength])
+        assert helper.check(result, [self.memorylength], self.batchCheck)
         return result
 
     def getWg(self, wc, g, w_):
-        assert helper.check(wc, [None, self.memorylength])
-        assert helper.check(g, [None, 1])
-        assert helper.check(w_, [None, self.memorylength])
+        assert helper.check(wc, [self.memorylength], self.batchCheck)
+        assert helper.check(g, [1], self.batchCheck)
+        assert helper.check(w_, [self.memorylength], self.batchCheck)
 
         result = g*wc + (1-g)*w_
 
-        assert helper.check(result, [None, self.memorylength])
+        assert helper.check(result, [self.memorylength], self.batchCheck)
         return result
 
     def getWm(self, wg, s):
-        assert helper.check(wg, [None, self.memorylength])
-        assert helper.check(s, [None, 5])
+        assert helper.check(wg, [self.memorylength], self.batchCheck)
+        assert helper.check(s, [5], self.batchCheck)
 
         size = self.memorylength
         shiftSize = 2
@@ -95,44 +101,39 @@ class NTMCell(RNN):
             indices = [shift(i+j) for j in range(shiftSize, -shiftSize-1, -1)]
             return tf.reduce_sum(tf.gather(wg, indices, axis=-1) * s, axis=-1)
 
-        print(indices(0).get_shape())
+        result = tf.stack([indices(i) for i in range(0,size)], axis=-1)
 
-        result = tf.concat([indices(i) for i in range(0,size)], axis=-1)
-
-        print(result.get_shape())
-
-        assert helper.check(result, [None, self.memorylength])
+        assert helper.check(result, [self.memorylength], self.batchCheck)
         return result
 
-    def getW(self, wm,y):
-        assert helper.check(wm, [None, self.memorylength])
-        assert helper.check(y, [None, 1])
+    def getW(self, wm, y):
+        assert helper.check(wm, [self.memorylength], self.batchCheck)
+        assert helper.check(y, [1], self.batchCheck)
 
-        pow = tf.pow(wm, y)
-        result =  pow / (tf.reduce_sum(pow, axis=-1)+0.001)
+        #Softmax should not be here, but otherise the power will push it into the complex domain
+        pow = tf.pow(tf.nn.softplus(wm), y)
+        result =  pow / (tf.reduce_sum(pow, axis=-1, keep_dims=True)+0.001)
 
-        assert helper.check(result, [None, self.memorylength])
+        assert helper.check(result, [self.memorylength], self.batchCheck)
         return result
 
     def read(self, M, w):
-        assert helper.check(M, [None, self.memorylength, self.memoryBitSize])
-        assert helper.check(w, [None, self.memorylength])
+        assert helper.check(M, [self.memorylength, self.memoryBitSize], self.batchCheck)
+        assert helper.check(w, [self.memorylength], self.batchCheck)
 
         result = tf.squeeze(tf.matmul(tf.expand_dims(w,axis=-2),M),axis=-2)
 
-        assert helper.check(result, [None, self.memoryBitSize])
+        assert helper.check(result, [self.memoryBitSize], self.batchCheck)
         return result
 
     def write(self, erase, add, M, w):
-        assert helper.check(erase, [None, self.memoryBitSize])
-        assert helper.check(add, [None, self.memoryBitSize])
-        assert helper.check(M, [None, self.memorylength, self.memoryBitSize])
-        assert helper.check(w, [None, self.memorylength])
+        assert helper.check(erase, [self.memoryBitSize], self.batchCheck)
+        assert helper.check(add, [self.memoryBitSize], self.batchCheck)
+        assert helper.check(M, [self.memorylength, self.memoryBitSize], self.batchCheck)
+        assert helper.check(w, [self.memorylength], self.batchCheck)
 
         M = tf.multiply(M, 1 - tf.matmul(tf.expand_dims(w, axis=-1),tf.expand_dims(erase, axis=-2)))
         result = M + tf.matmul(tf.expand_dims(w, axis=-1),tf.expand_dims(add, axis=-2))
 
-        print(result.get_shape())
-
-        assert helper.check(result, [None, self.memorylength, self.memoryBitSize])
+        assert helper.check(result, [self.memorylength, self.memoryBitSize], self.batchCheck)
         return result
