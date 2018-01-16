@@ -17,47 +17,43 @@ class NTMCell(RNN):
     def buildTimeLayer(self, input, first=False):
         with tf.variable_scope(self.name):
             if first:
-                if(len(input.get_shape())==2):
-                    batchSize = tf.shape(input)[0]
-                    self.batchCheck = True
-                else:
-                    batchSize = None
-                    self.batchCheck = False
+                self.setup(input)
 
-                self.LSTM = LSTMCell("controller", self.controllerSize)
+            LSTMOuput = self.LSTM.buildTimeLayer(tf.concat([input, self.prevRead], axis=-1), first)
 
-                self.prevRead = self.getTrainableConstant("ssPrevRead", self.memoryBitSize, batchSize)
-                self.M = tf.reshape(self.getTrainableConstant("ssM", self.memorylength * self.memoryBitSize, batchSize), [-1, self.memorylength, self.memoryBitSize])
-                self.wRead = self.getTrainableConstant("sswRead", self.memorylength, batchSize)
-                self.wWrite = self.getTrainableConstant("sswWrite", self.memorylength, batchSize)
-
-            I = tf.tanh(helper.map("prep", tf.concat([input, self.prevRead], axis=-1), self.controllerSize))
-            LSTMOuput = self.LSTM.buildTimeLayer(I, first)
-
-            self.wRead = self.processHead(LSTMOuput, self.M, self.wRead, "read")
-            self.wWrite = self.processHead(LSTMOuput, self.M, self.wWrite, "write")
-
-            self.prevRead = self.read(self.M, self.wRead)
-
-            erase = tf.sigmoid(helper.map("map_erase", LSTMOuput, self.memoryBitSize))
-            add = tf.tanh(helper.map("map_add", LSTMOuput, self.memoryBitSize))
-            self.M = self.write(erase, add, self.M, self.wWrite)
+            self.prevRead, self.wRead = self.read(self.M, self.wRead, LSTMOuput, 0)
+            self.M, self.wWrite = self.write(self.M, self.wRead, LSTMOuput, 0)
 
             return helper.map("output", LSTMOuput, self.outputSize)
 
-    def processHead(self, O, M, w_, name):
-        with tf.variable_scope(name, reuse=True):
-            k = tf.nn.softplus(helper.map("map_k", O, self.memoryBitSize))
-            b = tf.nn.softplus(helper.map("map_b", O, 1))
-            g = tf.sigmoid(helper.map("map_g", O, 1))
-            s = tf.nn.softmax(helper.map("map_s", O, 5))
-            y = tf.nn.softplus(helper.map("map_y", O, 1)) + 1
+    def setup(self, firstInput):
+        if(len(firstInput.get_shape())==2):
+            batchSize = tf.shape(firstInput)[0]
+            self.batchCheck = True
+        else:
+            batchSize = None
+            self.batchCheck = False
 
-            wc = self.getWc(k, M, b)
-            wg = self.getWg(wc, g, w_)
-            wm = self.getWm(wg, s)
-            w = self.getW(wm, y)
-            return w
+        self.LSTM = LSTMCell("controller", self.controllerSize)
+
+        with tf.variable_scope("init"):
+            self.prevRead = self.getTrainableConstant("PrevRead", self.memoryBitSize, batchSize)
+            self.M = tf.reshape(self.getTrainableConstant("M", self.memorylength * self.memoryBitSize, batchSize), [-1, self.memorylength, self.memoryBitSize])
+            self.wRead = self.getTrainableConstant("wRead", self.memorylength, batchSize)
+            self.wWrite = self.getTrainableConstant("wWrite", self.memorylength, batchSize)
+
+    def processHead(self, O, M, w_):
+        k = tf.nn.softplus(helper.map("map_k", O, self.memoryBitSize))
+        b = tf.nn.softplus(helper.map("map_b", O, 1))
+        g = tf.sigmoid(helper.map("map_g", O, 1))
+        s = tf.nn.softmax(helper.map("map_s", O, 5))
+        y = tf.nn.softplus(helper.map("map_y", O, 1)) + 1
+
+        wc = self.getWc(k, M, b)
+        wg = self.getWg(wc, g, w_)
+        wm = self.getWm(wg, s)
+        w = self.getW(wm, y)
+        return w
 
     def getWc(self, k, M, b):
         assert helper.check(k, [self.memoryBitSize], self.batchCheck)
@@ -117,23 +113,32 @@ class NTMCell(RNN):
         assert helper.check(result, [self.memorylength], self.batchCheck)
         return result
 
-    def read(self, M, w):
+    def read(self, M, w, O, i):
         assert helper.check(M, [self.memorylength, self.memoryBitSize], self.batchCheck)
         assert helper.check(w, [self.memorylength], self.batchCheck)
+        assert helper.check(O, [self.controllerSize], self.batchCheck)
 
-        result = tf.squeeze(tf.matmul(tf.expand_dims(w,axis=-2),M),axis=-2)
+        with tf.variable_scope("read"+str(i), reuse=True):
+            w = self.processHead(O, M, w)
+            result = tf.squeeze(tf.matmul(tf.expand_dims(w,axis=-2),M),axis=-2)
 
         assert helper.check(result, [self.memoryBitSize], self.batchCheck)
-        return result
+        assert helper.check(w, [self.memorylength], self.batchCheck)
+        return result, w
 
-    def write(self, erase, add, M, w):
-        assert helper.check(erase, [self.memoryBitSize], self.batchCheck)
-        assert helper.check(add, [self.memoryBitSize], self.batchCheck)
+    def write(self, M, w, O, i):
         assert helper.check(M, [self.memorylength, self.memoryBitSize], self.batchCheck)
         assert helper.check(w, [self.memorylength], self.batchCheck)
+        assert helper.check(O, [self.controllerSize], self.batchCheck)
 
-        M = tf.multiply(M, 1 - tf.matmul(tf.expand_dims(w, axis=-1),tf.expand_dims(erase, axis=-2)))
-        result = M + tf.matmul(tf.expand_dims(w, axis=-1),tf.expand_dims(add, axis=-2))
+        with tf.variable_scope("write"+str(i), reuse=True):
+            w = self.processHead(O, M, w)
+            erase = tf.sigmoid(helper.map("map_erase", O, self.memoryBitSize))
+            add = tf.tanh(helper.map("map_add", O, self.memoryBitSize))
+
+            M = tf.multiply(M, 1 - tf.matmul(tf.expand_dims(w, axis=-1),tf.expand_dims(erase, axis=-2)))
+            result = M + tf.matmul(tf.expand_dims(w, axis=-1),tf.expand_dims(add, axis=-2))
 
         assert helper.check(result, [self.memorylength, self.memoryBitSize], self.batchCheck)
-        return result
+        assert helper.check(w, [self.memorylength], self.batchCheck)
+        return result, w

@@ -17,14 +17,14 @@ def map(name, input, outputSize, r=tf.AUTO_REUSE):
         with tf.variable_scope(name, reuse=r):
             inputSize = input.get_shape()[0]
             input = tf.expand_dims(input, 0)
-            m = tf.get_variable(name+"M", initializer=tf.random_normal([inputSize,int(outputSize)]))
-            b = tf.get_variable(name+"B", initializer=tf.random_normal([int(outputSize)]))
+            m = tf.get_variable("M", initializer=tf.random_normal([inputSize,int(outputSize)]))
+            b = tf.get_variable("B", initializer=tf.random_normal([int(outputSize)]))
             return tf.squeeze(tf.matmul(input, m) + b, [0])
     else:
         with tf.variable_scope(name, reuse=r):
             inputSize = input.get_shape()[1].value
-            m = tf.get_variable(name+"M", initializer=tf.random_normal([inputSize,int(outputSize)]))
-            b = tf.get_variable(name+"B", initializer=tf.random_normal([int(outputSize)]))
+            m = tf.get_variable("M", initializer=tf.random_normal([inputSize,int(outputSize)]))
+            b = tf.get_variable("B", initializer=tf.random_normal([int(outputSize)]))
             return tf.matmul(input, m) + b
 
 def makeStartState(name, shape):
@@ -49,7 +49,10 @@ def makeStartStateBatch(name, batchSize, shape):
 
 def getNewxy(length, bitDepth):
     data = np.random.randint(2, size=(length, bitDepth))
-    x = data # np.concatenate((np.concatenate((np.zeros((length,1)),data),axis=1),np.ones((length,bitDepth+1))), axis=0)
+    #x = data #np.concatenate((np.concatenate((np.zeros((length,1)),data),axis=1),np.ones((length,bitDepth+1))), axis=0)
+    a1 = np.concatenate((np.zeros((length,1)),data), axis=1)
+    a2 = np.concatenate((a1,np.ones((1,bitDepth+1))), axis=0)
+    x = np.concatenate((a2,np.zeros((length,bitDepth+1))), axis=0)
     y = data
     return x,y
 
