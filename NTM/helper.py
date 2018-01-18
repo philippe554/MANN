@@ -84,6 +84,12 @@ def getNewxyBatch(length, bitDebth, amount):
         y.append(Y)
     return x,y
 
+def getSampleOf(Xfull, Yfull, K):
+    indices = sorted(random.sample(range(len(Xfull)), K))
+    X = [Xfull[i] for i in indices]
+    Y = [Yfull[i] for i in indices]
+    return X,Y
+
 def printStats(variables):
     print("Trainable variables:")
     total_parameters = 0

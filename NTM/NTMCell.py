@@ -24,7 +24,9 @@ class NTMCell(RNN):
             self.prevRead, self.wRead = self.read(self.M, self.wRead, LSTMOuput, 0)
             self.M, self.wWrite = self.write(self.M, self.wRead, LSTMOuput, 0)
 
-            return helper.map("output", LSTMOuput, self.outputSize)
+            w = tf.concat([self.wWrite, self.wRead], axis=-1)
+
+            return helper.map("output", LSTMOuput, self.outputSize), w
 
     def setup(self, firstInput):
         if(len(firstInput.get_shape())==2):
@@ -39,14 +41,14 @@ class NTMCell(RNN):
         with tf.variable_scope("init"):
             self.prevRead = self.getTrainableConstant("PrevRead", self.memoryBitSize, batchSize)
             self.M = tf.reshape(self.getTrainableConstant("M", self.memorylength * self.memoryBitSize, batchSize), [-1, self.memorylength, self.memoryBitSize])
-            self.wRead = self.getTrainableConstant("wRead", self.memorylength, batchSize)
-            self.wWrite = self.getTrainableConstant("wWrite", self.memorylength, batchSize)
+            self.wRead = tf.sigmoid(self.getTrainableConstant("wRead", self.memorylength, batchSize)) #Added sigmoid
+            self.wWrite = tf.sigmoid(self.getTrainableConstant("wWrite", self.memorylength, batchSize)) #Added sigmoid
 
     def processHead(self, O, M, w_):
         k = tf.nn.softplus(helper.map("map_k", O, self.memoryBitSize))
         b = tf.nn.softplus(helper.map("map_b", O, 1))
         g = tf.sigmoid(helper.map("map_g", O, 1))
-        s = tf.nn.softmax(helper.map("map_s", O, 5))
+        s = tf.nn.softmax(tf.sigmoid(helper.map("map_s", O, 5))) #Added sigmoid
         y = tf.nn.softplus(helper.map("map_y", O, 1)) + 1
 
         wc = self.getWc(k, M, b)
@@ -106,8 +108,8 @@ class NTMCell(RNN):
         assert helper.check(wm, [self.memorylength], self.batchCheck)
         assert helper.check(y, [1], self.batchCheck)
 
-        #Softmax should not be here, but otherise the power will push it into the complex domain
-        pow = tf.pow(tf.nn.softplus(wm), y)
+        #wm can be negtive -> power will push it into the complex domain
+        pow = tf.pow(wm, y)
         result =  pow / (tf.reduce_sum(pow, axis=-1, keep_dims=True)+0.001)
 
         assert helper.check(result, [self.memorylength], self.batchCheck)

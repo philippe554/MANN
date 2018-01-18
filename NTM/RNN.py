@@ -15,6 +15,7 @@ class RNN:
             batchSize = tf.shape(x)[0]
         else:
             batchSize = None
+        W = []
 
         inputCounter = 0
         for i in range(0,len(inputMask)):
@@ -28,7 +29,9 @@ class RNN:
                         states[inputMask[i]] = self.getTrainableConstant("dummyInput"+str(inputMask[i]), x.get_shape()[-1], batchSize)
                 input = states[inputMask[i]]
 
-            O = self.buildTimeLayer(input, bool(i==0))
+            O, w = self.buildTimeLayer(input, bool(i==0))
+
+            W.append(tf.expand_dims(w, -2))
         
             if(outputMask[i]==1):
                 if(outputSize is not None):
@@ -36,7 +39,7 @@ class RNN:
                         O = helper.map("outputMap", O, outputSize)
                 output.append(tf.expand_dims(O, -2))
 
-        return tf.concat(output, axis=-2)
+        return tf.concat(output, axis=-2), tf.concat(W, axis=-2)
 
     def getTrainableConstant(self, name, size, batches=None):
         state = tf.get_variable(name, initializer=tf.random_normal([int(size)]))
