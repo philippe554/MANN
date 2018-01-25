@@ -53,7 +53,7 @@ class NTMCell(RNN):
 
         wc = self.getWc(k, M, b)
         wg = self.getWg(wc, g, w_)
-        wm = self.getWm(wg, s)
+        wm = self.getWmFast(wg, s)
         w = self.getW(wm, y)
         return w
 
@@ -100,6 +100,22 @@ class NTMCell(RNN):
             return tf.reduce_sum(tf.gather(wg, indices, axis=-1) * s, axis=-1)
 
         result = tf.stack([indices(i) for i in range(0,size)], axis=-1)
+
+        assert helper.check(result, [self.memorylength], self.batchCheck)
+        return result
+
+    def getWmFast(self, wg, s):
+        #Amount of concat operations is proportinal o the shift size, instead of memory length (Only significantly faster on a big memory)
+        assert helper.check(wg, [self.memorylength], self.batchCheck)
+        assert helper.check(s, [5], self.batchCheck)
+
+        w1 = tf.concat([wg[:,-2:], wg[:,:-2]], axis=-1)
+        w2 = tf.concat([wg[:,-1:], wg[:,:-1]], axis=-1)
+        w4 = tf.concat([wg[:,1:], wg[:,:1]], axis=-1)
+        w5 = tf.concat([wg[:,2:], wg[:,:2]], axis=-1)
+
+        w = tf.stack([w1,w2,wg,w4,w5], axis=-1)
+        result = tf.squeeze(tf.matmul(w,tf.expand_dims(s, axis=-1)), axis=-1)
 
         assert helper.check(result, [self.memorylength], self.batchCheck)
         return result
