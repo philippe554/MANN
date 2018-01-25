@@ -7,7 +7,7 @@ import random
 import time
 import matplotlib.pyplot as plt
 
-length = 2
+length = 16
 bitDepth = 6
 inputMask = length * [0] + [0] + length * [0]
 outputMask = (length) * [0] + [0] + (length) * [1]
@@ -24,15 +24,14 @@ Xfull,Yfull= helper.getNewxyBatch(length, bitDepth, 50000)
 
 x = tf.placeholder(tf.float32, shape=(None, inputMask.count(0), bitDepth+1))
 _y = tf.placeholder(tf.float32, shape=(None, outputMask.count(1), bitDepth))
-y,W = NTMCell("ntm", bitDepth, 8, 50, 25).build(x, inputMask=inputMask, outputMask=outputMask, outputSize=bitDepth)
+y,W = NTMCell("ntm", bitDepth, 10, 24, 25).build(x, inputMask=inputMask, outputMask=outputMask, outputSize=bitDepth)
 
 W=tf.squeeze(W)
 
-helper.printStats(tf.trainable_variables())
-
 crossEntropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=_y, logits=y)
 loss = tf.reduce_sum(crossEntropy)
-optimizer = tf.train.AdamOptimizer()
+#optimizer = tf.train.AdamOptimizer()
+optimizer = tf.train.RMSPropOptimizer(0.001)
 #trainStep = optimizer.minimize(crossEntropy)
 grads_and_vars = optimizer.compute_gradients(crossEntropy)
 trainStep = optimizer.apply_gradients(grads_and_vars)
@@ -40,6 +39,8 @@ trainStep = optimizer.apply_gradients(grads_and_vars)
 
 p = tf.round(tf.sigmoid(y))
 accuracy = tf.reduce_mean(tf.cast(tf.equal(_y,p), tf.float32))
+
+helper.printStats(tf.trainable_variables())
 
 tf.summary.scalar('loss', loss)
 tf.summary.scalar('accuracy', accuracy)
@@ -54,7 +55,7 @@ with tf.Session() as sess:
 
     merged = tf.summary.merge_all()
     writer = tf.summary.FileWriter("C:/temp/tf_log/", sess.graph)
-    # python -m tensorboard.main logdir="C:/temp/tf_log/"
+    # python -m tensorboard.main --logdir="C:/temp/tf_log/"
     # localhost:6006
 
     plt.ion()

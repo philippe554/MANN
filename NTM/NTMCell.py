@@ -24,6 +24,7 @@ class NTMCell(RNN):
             self.prevRead, self.wRead = self.read(self.M, self.wRead, LSTMOuput, 0)
             self.M, self.wWrite = self.write(self.M, self.wRead, LSTMOuput, 0)
 
+            #Just used for plotting
             w = tf.concat([self.wWrite, self.wRead], axis=-1)
 
             return helper.map("output", LSTMOuput, self.outputSize), w
@@ -105,7 +106,7 @@ class NTMCell(RNN):
         return result
 
     def getWmFast(self, wg, s):
-        #Amount of concat operations is proportinal o the shift size, instead of memory length (Only significantly faster on a big memory)
+        #Amount of concat operations is proportional to the shift size, instead of memory length (Only significantly faster on a big memory)
         assert helper.check(wg, [self.memorylength], self.batchCheck)
         assert helper.check(s, [5], self.batchCheck)
 
@@ -115,7 +116,7 @@ class NTMCell(RNN):
         w5 = tf.concat([wg[:,2:], wg[:,:2]], axis=-1)
 
         w = tf.stack([w1,w2,wg,w4,w5], axis=-1)
-        result = tf.squeeze(tf.matmul(w,tf.expand_dims(s, axis=-1)), axis=-1)
+        result = tf.squeeze(tf.matmul(w, tf.expand_dims(s, axis=-1)), axis=-1)
 
         assert helper.check(result, [self.memorylength], self.batchCheck)
         return result
