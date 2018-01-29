@@ -25,7 +25,7 @@ class MANNHeadPrototype:
     def buildWrite(self, M, O):
         raise NotImplementedError
 
-    def getCosSim(self, k, M, b=None):
+    def getCosSim(self, k, M, b):
         assert helper.check(k, [self.memoryBitSize], self.batchSize)
         assert helper.check(M, [self.memorylength, self.memoryBitSize], self.batchSize)
         assert helper.check(b, [1], self.batchSize)
@@ -35,10 +35,7 @@ class MANNHeadPrototype:
         l2 = tf.sqrt(tf.reduce_sum(tf.pow(M, 2), axis=-1))
         cosSim = tf.divide(dot, l1 * l2 + 0.001)
 
-        if b is None:
-            result = tf.nn.softmax(cosSim)
-        else:
-            result = tf.nn.softmax((b * cosSim) + 0.001)
+        result = tf.nn.softmax((b * cosSim) + 0.001)
 
         assert helper.check(result, [self.memorylength], self.batchSize)
         return result

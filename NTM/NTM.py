@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from NTMCell import *
 from heads.NTMHead import *
+from heads.LRUAHead import *
 import helper
 import random
 import time
@@ -26,7 +27,8 @@ Xfull,Yfull= helper.getNewxyBatch(length, bitDepth, 50000)
 x = tf.placeholder(tf.float32, shape=(None, inputMask.count(0), bitDepth+1))
 _y = tf.placeholder(tf.float32, shape=(None, outputMask.count(1), bitDepth))
 
-head = NTMHead("head1")
+#head = NTMHead("head1")
+head = LRUAHead("head1")
 cell = NTMCell("ntm", bitDepth, 10, 24, 25, head)
 
 

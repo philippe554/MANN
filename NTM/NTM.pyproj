@@ -32,7 +32,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="helper.py" />
-    <Compile Include="keras.py">
+    <Compile Include="tests\keras.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="LSTM.py">
@@ -42,12 +42,16 @@
     <Compile Include="NTM.py" />
     <Compile Include="NTMCell.py" />
     <Compile Include="RNN.py" />
+    <Compile Include="tests\minitests.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="Global|ContinuumAnalytics|Anaconda36-64" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="heads\" />
+    <Folder Include="tests\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

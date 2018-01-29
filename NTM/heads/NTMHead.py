@@ -17,9 +17,10 @@ class NTMHead(MANNHeadPrototype):
         assert helper.check(self.wRead, [self.memorylength], self.batchSize)
         assert helper.check(O, [self.controllerSize], self.batchSize)
 
-        with tf.variable_scope("read", reuse=True):
-            self.wRead = self.processHead(O, M, self.wRead)
-            result = tf.squeeze(tf.matmul(tf.expand_dims(self.wRead,axis=-2),M),axis=-2)
+        with tf.variable_scope(self.name, reuse=True):
+            with tf.variable_scope("read", reuse=True):
+                self.wRead = self.processHead(O, M, self.wRead)
+                result = tf.squeeze(tf.matmul(tf.expand_dims(self.wRead,axis=-2),M),axis=-2)
 
         assert helper.check(result, [self.memoryBitSize], self.batchSize)
         assert helper.check(self.wRead, [self.memorylength], self.batchSize)
@@ -30,10 +31,11 @@ class NTMHead(MANNHeadPrototype):
         assert helper.check(self.wWrite, [self.memorylength], self.batchSize)
         assert helper.check(O, [self.controllerSize], self.batchSize)
 
-        with tf.variable_scope("write", reuse=True):
-            self.wWrite = self.processHead(O, M, self.wWrite)
-            erase = tf.sigmoid(helper.map("map_erase", O, self.memoryBitSize))
-            add = tf.tanh(helper.map("map_add", O, self.memoryBitSize))
+        with tf.variable_scope(self.name, reuse=True):
+            with tf.variable_scope("write", reuse=True):
+                self.wWrite = self.processHead(O, M, self.wWrite)
+                erase = tf.sigmoid(helper.map("map_erase", O, self.memoryBitSize))
+                add = tf.tanh(helper.map("map_add", O, self.memoryBitSize))
 
             M = tf.multiply(M, 1 - tf.matmul(tf.expand_dims(self.wWrite, axis=-1),tf.expand_dims(erase, axis=-2)))
             result = M + tf.matmul(tf.expand_dims(self.wWrite, axis=-1),tf.expand_dims(add, axis=-2))
