@@ -2,12 +2,13 @@ import tensorflow as tf
 import pandas as pd
 import numpy as np
 from NTMCell import *
+from heads.NTMHead import *
 import helper
 import random
 import time
 import matplotlib.pyplot as plt
 
-length = 16
+length = 3
 bitDepth = 6
 inputMask = length * [0] + [0] + length * [0]
 outputMask = (length) * [0] + [0] + (length) * [1]
@@ -24,8 +25,12 @@ Xfull,Yfull= helper.getNewxyBatch(length, bitDepth, 50000)
 
 x = tf.placeholder(tf.float32, shape=(None, inputMask.count(0), bitDepth+1))
 _y = tf.placeholder(tf.float32, shape=(None, outputMask.count(1), bitDepth))
-y,W = NTMCell("ntm", bitDepth, 10, 24, 25).build(x, inputMask=inputMask, outputMask=outputMask, outputSize=bitDepth)
 
+head = NTMHead("head1")
+cell = NTMCell("ntm", bitDepth, 10, 24, 25, head)
+
+
+y,W = cell.build(x, inputMask=inputMask, outputMask=outputMask, outputSize=bitDepth)
 W=tf.squeeze(W)
 
 crossEntropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=_y, logits=y)

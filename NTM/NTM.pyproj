@@ -22,6 +22,15 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="heads\LRUAHead.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="heads\MANNHeadPrototype.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="heads\NTMHead.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="helper.py" />
     <Compile Include="keras.py">
       <SubType>Code</SubType>
@@ -36,6 +45,9 @@
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="Global|ContinuumAnalytics|Anaconda36-64" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="heads\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

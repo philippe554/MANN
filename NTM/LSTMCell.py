@@ -18,7 +18,7 @@ class LSTMCell(RNN):
                 else:
                     batchSize = None
 
-                self.prevState = self.getTrainableConstant("startState", self.stateSize, batchSize)
+                self.prevState = helper.getTrainableConstant("startState", self.stateSize, batchSize)
                 self.prevOutput = tf.tanh(self.prevState)
 
             cc = tf.concat([input,self.prevOutput], axis=-1)

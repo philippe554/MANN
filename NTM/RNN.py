@@ -40,11 +40,3 @@ class RNN:
                 output.append(tf.expand_dims(O, -2))
 
         return tf.concat(output, axis=-2), tf.concat(W, axis=-2)
-
-    def getTrainableConstant(self, name, size, batches=None):
-        state = tf.get_variable(name, initializer=tf.random_normal([int(size)]))
-
-        if batches is not None:
-            state = tf.reshape(tf.tile(state, [batches]), [batches, int(size)])
-
-        return state

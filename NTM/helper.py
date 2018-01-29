@@ -102,9 +102,18 @@ def printStats(variables):
         total_parameters += variable_parameters
     print("Number of parameters: " + str(total_parameters))
 
-def check(t, shape, isBatch=False):
-    if(isBatch):
+def getTrainableConstant(name, size, batches=None):
+    state = tf.get_variable(name, initializer=tf.random_normal([int(size)]))
+
+    if batches is not None:
+        state = tf.reshape(tf.tile(state, [batches]), [batches, int(size)])
+
+    return state
+
+def check(t, shape, batchSize):
+    if batchSize is not None:
         shape = [None] + shape
+
     if(len(t.get_shape())!=len(shape)):
         return False
     for i,v in enumerate(shape):
@@ -116,4 +125,5 @@ def check(t, shape, isBatch=False):
             if(t.get_shape().as_list()[i] != v):
                 return False
     return True
+
 
