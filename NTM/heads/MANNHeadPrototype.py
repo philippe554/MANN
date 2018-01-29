@@ -4,6 +4,8 @@ import numpy as np
 
 import helper
 
+#Abstract class, shows a template for reading heads. Overwrite the not implemented functions
+
 class MANNHeadPrototype:
     def __init__(self, name):
         self.name = name;
@@ -25,7 +27,7 @@ class MANNHeadPrototype:
     def buildWrite(self, M, O):
         raise NotImplementedError
 
-    def getCosSim(self, k, M, b):
+    def getCosSimSoftMax(self, k, M, b):
         assert helper.check(k, [self.memoryBitSize], self.batchSize)
         assert helper.check(M, [self.memorylength, self.memoryBitSize], self.batchSize)
         assert helper.check(b, [1], self.batchSize)

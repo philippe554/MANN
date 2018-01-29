@@ -51,7 +51,7 @@ class NTMHead(MANNHeadPrototype):
         s = tf.nn.softmax(tf.sigmoid(helper.map("map_s", O, 5))) #Added sigmoid
         y = tf.nn.softplus(helper.map("map_y", O, 1)) + 1
 
-        wc = self.getCosSim(k, M, b)
+        wc = self.getCosSimSoftMax(k, M, b)
         wg = self.getWg(wc, g, w_)
         wm = self.getWmFast(wg, s)
         w = self.getW(wm, y)
