@@ -3,46 +3,35 @@ import pandas as pd
 import numpy as np
 
 import helper
-from heads.MANNHeadPrototype import *
+from MANN.Head.HeadBase import *
 
-class NTMHead(MANNHeadPrototype):
-    def setupStartVariables(self):
-        with tf.variable_scope(self.name):
-            with tf.variable_scope("init"):
-                self.wRead = tf.sigmoid(helper.getTrainableConstant("wRead", self.memorylength, self.batchSize)) #Added sigmoid
-                self.wWrite = tf.sigmoid(helper.getTrainableConstant("wWrite", self.memorylength, self.batchSize)) #Added sigmoid
-
-    def buildRead(self, M, O):
+class NTMHead(HeadBase):
+    def buildRead(self, memory, O):
         assert helper.check(M, [self.memorylength, self.memoryBitSize], self.batchSize)
         assert helper.check(self.wRead, [self.memorylength], self.batchSize)
         assert helper.check(O, [self.controllerSize], self.batchSize)
 
-        with tf.variable_scope(self.name, reuse=True):
-            with tf.variable_scope("read", reuse=True):
-                self.wRead = self.processHead(O, M, self.wRead)
-                result = tf.squeeze(tf.matmul(tf.expand_dims(self.wRead,axis=-2),M),axis=-2)
+        self.wList.append(self.processHead(O, memory.M, self.getLastW()))
+        assert helper.check(self.wList[-1], [self.memorylength], self.batchSize)
 
-        assert helper.check(result, [self.memoryBitSize], self.batchSize)
-        assert helper.check(self.wRead, [self.memorylength], self.batchSize)
-        return result, self.wRead
+        self.readList.append(tf.squeeze(tf.matmul(tf.expand_dims(self.wRead,axis=-2),M),axis=-2))
+        assert helper.check(self.readList[-1], [self.memoryBitSize], self.batchSize)
 
-    def buildWrite(self, M, O):
+    def buildWrite(self, memory, O):
         assert helper.check(M, [self.memorylength, self.memoryBitSize], self.batchSize)
         assert helper.check(self.wWrite, [self.memorylength], self.batchSize)
         assert helper.check(O, [self.controllerSize], self.batchSize)
 
-        with tf.variable_scope(self.name, reuse=True):
-            with tf.variable_scope("write", reuse=True):
-                self.wWrite = self.processHead(O, M, self.wWrite)
-                erase = tf.sigmoid(helper.map("map_erase", O, self.memoryBitSize))
-                add = tf.tanh(helper.map("map_add", O, self.memoryBitSize))
+        self.wList.append(self.processHead(O, memory.M, self.getLastW()))
+        assert helper.check(self.wList[-1], [self.memorylength], self.batchSize)
 
-            M = tf.multiply(M, 1 - tf.matmul(tf.expand_dims(self.wWrite, axis=-1),tf.expand_dims(erase, axis=-2)))
-            result = M + tf.matmul(tf.expand_dims(self.wWrite, axis=-1),tf.expand_dims(add, axis=-2))
+        erase = tf.sigmoid(helper.map("map_erase", O, self.memoryBitSize))
+        add = tf.tanh(helper.map("map_add", O, self.memoryBitSize))
 
-        assert helper.check(result, [self.memorylength, self.memoryBitSize], self.batchSize)
-        assert helper.check(self.wWrite, [self.memorylength], self.batchSize)
-        return result, self.wWrite
+        memory.M = tf.multiply(memory.M, 1 - tf.matmul(tf.expand_dims(self.wWrite, axis=-1),tf.expand_dims(erase, axis=-2)))
+        memory.M = memory.M + tf.matmul(tf.expand_dims(self.wWrite, axis=-1),tf.expand_dims(add, axis=-2))
+
+        assert helper.check(memory.M, [self.memorylength, self.memoryBitSize], self.batchSize)
 
     def processHead(self, O, M, w_):
         k = tf.nn.softplus(helper.map("map_k", O, self.memoryBitSize))

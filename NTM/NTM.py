@@ -1,9 +1,9 @@
 import tensorflow as tf
 import pandas as pd
 import numpy as np
-from NTMCell import *
-from heads.NTMHead import *
-from heads.LRUAHead import *
+from MANN.MANNUnit import *
+from MANN.Head.NTMHead import *
+from MANN.Memory.BasicMemory import *
 import helper
 import random
 import time
@@ -27,12 +27,14 @@ Xfull,Yfull= helper.getNewxyBatch(length, bitDepth, 50000)
 x = tf.placeholder(tf.float32, shape=(None, inputMask.count(0), bitDepth+1))
 _y = tf.placeholder(tf.float32, shape=(None, outputMask.count(1), bitDepth))
 
-#head = NTMHead("head1")
-head = LRUAHead("head1")
-cell = NTMCell("ntm", bitDepth, 10, 24, 25, head)
-
+cell = MANNUnit("L1ntm")
+cell.addMemory(BasicMemory("M1", 24, 10, "Trainable"))
+cell.addController(GRUCell("controller1", 25))
+cell.addHead(NTMHead("WriteHead1", "Write"))
+cell.addHead(NTMHead("ReadHead1", "Read"))
 
 y,W = cell.build(x, inputMask=inputMask, outputMask=outputMask, outputSize=bitDepth)
+y = helper.map("L2", y, bitDepth)
 W=tf.squeeze(W)
 
 crossEntropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=_y, logits=y)

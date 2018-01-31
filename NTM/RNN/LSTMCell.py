@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 import helper
-from RNN import *
+from RNN.RNN import *
 
 class LSTMCell(RNN):
     def __init__(self, name, stateSize):

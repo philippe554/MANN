@@ -32,16 +32,24 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="helper.py" />
+    <Compile Include="MANN\MANNUnit.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MANN\Memory\BasicMemory.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="RNN\GRUCell.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="tests\keras.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="LSTM.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="LSTMCell.py" />
+    <Compile Include="RNN\LSTMCell.py" />
     <Compile Include="NTM.py" />
-    <Compile Include="NTMCell.py" />
-    <Compile Include="RNN.py" />
+    <Compile Include="RNN\RNN.py" />
     <Compile Include="tests\minitests.py">
       <SubType>Code</SubType>
     </Compile>
@@ -51,6 +59,9 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="heads\" />
+    <Folder Include="MANN\" />
+    <Folder Include="MANN\Memory\" />
+    <Folder Include="RNN\" />
     <Folder Include="tests\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
