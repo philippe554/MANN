@@ -8,6 +8,7 @@ class HeadBase:
     def __init__(self, name, mode):
         self.name = name
         self.mode = mode
+        self.wList = []
 
         if self.mode not in ["Read", "Write"]:
             raise ValueError("Set a valid mode")
@@ -20,13 +21,6 @@ class HeadBase:
 
         with tf.variable_scope(self.name):
             with tf.variable_scope("init"):
-                self.wFirst = tf.sigmoid(helper.getTrainableConstant("wRead", self.memorylength, self.batchSize)) #Added sigmoid
-                self.wList = []
-
-                if self.mode == "Read":
-                    self.readFirst = helper.getTrainableConstant("PrevRead", self.memoryBitSize, self.batchSize)
-                    self.readList = []
-
                 self.setupStartVariables()
 
     def buildHead(self, memory, O):

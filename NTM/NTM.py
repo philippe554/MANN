@@ -4,6 +4,7 @@ import numpy as np
 from MANN.MANNUnit import *
 from MANN.Head.NTMHead import *
 from MANN.Memory.BasicMemory import *
+from RNN.GRUCell import *
 import helper
 import random
 import time
@@ -27,15 +28,15 @@ Xfull,Yfull= helper.getNewxyBatch(length, bitDepth, 50000)
 x = tf.placeholder(tf.float32, shape=(None, inputMask.count(0), bitDepth+1))
 _y = tf.placeholder(tf.float32, shape=(None, outputMask.count(1), bitDepth))
 
-cell = MANNUnit("L1ntm")
+cell = MANNUnit("L1MANN")
 cell.addMemory(BasicMemory("M1", 24, 10, "Trainable"))
 cell.addController(GRUCell("controller1", 25))
 cell.addHead(NTMHead("WriteHead1", "Write"))
 cell.addHead(NTMHead("ReadHead1", "Read"))
 
-y,W = cell.build(x, inputMask=inputMask, outputMask=outputMask, outputSize=bitDepth)
-y = helper.map("L2", y, bitDepth)
-W=tf.squeeze(W)
+y = cell.build(x, inputMask=inputMask, outputMask=outputMask, outputSize=bitDepth)
+#y = helper.map("L2", y, bitDepth)
+#W=tf.squeeze(W)
 
 crossEntropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=_y, logits=y)
 loss = tf.reduce_sum(crossEntropy)
@@ -85,10 +86,10 @@ with tf.Session() as sess:
 
         print("#" + str(i+1) + "\tacc: " + "{0:.4f}".format(acc) + "\tLoss: " + str(int(trainLoss)) + "-" + str(int(testLoss)) + "\tTime: " + "{0:.4f}".format(duration) + "s")
 
-        if(i%1==0):
-            X,Y = helper.getNewxyBatch(length, bitDepth, 1)
-            acc, w = sess.run([accuracy, W], feed_dict={x: X, _y: Y})
-            plt.imshow(w, vmin=0, vmax=1);
-            plt.show()
-            plt.pause(0.05)
+        #if(i%1==0):
+        #    X,Y = helper.getNewxyBatch(length, bitDepth, 1)
+        #    acc, w = sess.run([accuracy, W], feed_dict={x: X, _y: Y})
+        #    plt.imshow(w, vmin=0, vmax=1);
+        #    plt.show()
+        #    plt.pause(0.05)
             

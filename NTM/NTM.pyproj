@@ -22,22 +22,17 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="heads\LRUAHead.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="heads\MANNHeadPrototype.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="heads\NTMHead.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="helper.py" />
+    <Compile Include="MANN\Head\HeadBase.py" />
+    <Compile Include="MANN\Head\LRUAHead.py" />
+    <Compile Include="MANN\Head\NTMHead.py" />
     <Compile Include="MANN\MANNUnit.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MANN\Memory\BasicMemory.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="MANN\Memory\MemoryBase.py" />
     <Compile Include="RNN\GRUCell.py">
       <SubType>Code</SubType>
     </Compile>
@@ -58,11 +53,16 @@
     <InterpreterReference Include="Global|ContinuumAnalytics|Anaconda36-64" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="heads\" />
     <Folder Include="MANN\" />
+    <Folder Include="MANN\Head\" />
+    <Folder Include="MANN\Head\__pycache__\" />
     <Folder Include="MANN\Memory\" />
     <Folder Include="RNN\" />
     <Folder Include="tests\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="MANN\Head\__pycache__\HeadBase.cpython-36.pyc" />
+    <Content Include="MANN\Head\__pycache__\NTMHead.cpython-36.pyc" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

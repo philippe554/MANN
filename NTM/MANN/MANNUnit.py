@@ -18,15 +18,15 @@ class MANNUnit(RNN):
             if first:
                 self.setup(input)
 
-            prevReads = [head.getLastRead() for head in heads]
+            prevReads = [head.getLastRead() for head in self.readHeads]
 
             O = self.controller.buildTimeLayer(tf.concat([input]+prevReads, axis=-1), first)
 
             for head in self.readHeads:
-                head.buildRead(self.memory, O)
+                head.buildHead(self.memory, O)
 
             for head in self.writeHeads:
-                head.buildWrite(self.memory, O)
+                head.buildHead(self.memory, O)
 
             return O
 
@@ -41,12 +41,11 @@ class MANNUnit(RNN):
         else:
             self.batchSize = None
 
-        with tf.variable_scope("init"):
-            self.memory.setup(self.batchSize)
-            for head in self.readHeads:
-                head.setup(self.batchSize, self.memory.bitDepth, self.memory.length, self.controller.stateSize)
-            for head in self.writeHeads:
-                head.setup(self.batchSize, self.memory.bitDepth, self.memory.length, self.controller.stateSize)
+        self.memory.setup(self.batchSize)
+        for head in self.readHeads:
+            head.setup(self.batchSize, self.memory.bitDepth, self.memory.length, self.controller.stateSize)
+        for head in self.writeHeads:
+            head.setup(self.batchSize, self.memory.bitDepth, self.memory.length, self.controller.stateSize)
         
     def addMemory(self, memory):
         self.memory = memory

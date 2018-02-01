@@ -15,8 +15,8 @@ class BasicMemory(MemoryBase):
     def setup(self, batchSize):
         if self.profile == "Trainable":
             with tf.variable_scope(self.name):
-                if self.batchSize is not None:
-                    self.startMemory = tf.reshape(helper.getTrainableConstant("M", self.length * self.bitDepth, batchSize), [-1, self.memoryLength, self.memoryBitSize])
+                if batchSize is not None:
+                    self.startMemory = tf.reshape(helper.getTrainableConstant("M", self.length * self.bitDepth, batchSize), [-1, self.length, self.bitDepth])
                 else:
                     self.startMemory = helper.getTrainableConstant("M", self.length * self.bitDepth, None)
 
