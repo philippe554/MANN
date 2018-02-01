@@ -4,7 +4,7 @@ import numpy as np
 
 import helper
 
-class RNN:
+class RNNBase:
     def __init__(self, name):
         self.name = name;
 

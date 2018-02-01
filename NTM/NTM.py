@@ -5,6 +5,7 @@ from MANN.MANNUnit import *
 from MANN.Head.NTMHead import *
 from MANN.Memory.BasicMemory import *
 from RNN.GRUCell import *
+from RNN.FFCell import *
 import helper
 import random
 import time
@@ -30,11 +31,12 @@ _y = tf.placeholder(tf.float32, shape=(None, outputMask.count(1), bitDepth))
 
 cell = MANNUnit("L1MANN")
 cell.addMemory(BasicMemory("M1", 24, 10, "Trainable"))
-cell.addController(GRUCell("controller1", 25))
-cell.addHead(NTMHead("WriteHead1", "Write"))
-cell.addHead(NTMHead("ReadHead1", "Read"))
+cell.addController(FFCell("Controller1", 25, tf.tanh))
+cell.addHead(NTMHead("Head1", "Write"))
+cell.addHead(NTMHead("Head2", "Read"))
 
 y = cell.build(x, inputMask=inputMask, outputMask=outputMask, outputSize=bitDepth)
+
 #y = helper.map("L2", y, bitDepth)
 #W=tf.squeeze(W)
 

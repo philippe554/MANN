@@ -7,40 +7,19 @@ from MANN.Head.HeadBase import *
 
 class NTMHead(HeadBase):
     def setupStartVariables(self):
-        self.wFirst = tf.sigmoid(helper.getTrainableConstant("wRead", self.memorylength, self.batchSize)) #Added sigmoid
+        self.wFirst = tf.sigmoid(helper.getTrainableConstant("w", self.memorylength, self.batchSize)) #Added sigmoid
 
         if self.mode == "Read":
-            self.readFirst = helper.getTrainableConstant("PrevRead", self.memoryBitSize, self.batchSize)
+            self.readFirst = helper.getTrainableConstant("firstRead", self.memoryBitSize, self.batchSize)
             self.readList = []
 
-    def buildRead(self, memory, O):
-        assert helper.check(memory.getLast(), [self.memorylength, self.memoryBitSize], self.batchSize)
-        assert helper.check(self.getLastW(), [self.memorylength], self.batchSize)
-        assert helper.check(O, [self.controllerSize], self.batchSize)
+    def getW(self, O, memory):
+        M = memory.getLast()
+        w_ = self.getLastW()
 
-        self.wList.append(self.processHead(O, memory.getLast(), self.getLastW()))
-        assert helper.check(self.getLastW(), [self.memorylength], self.batchSize)
+        assert helper.check(M, [self.memorylength, self.memoryBitSize], self.batchSize)
+        assert helper.check(w_, [self.memorylength], self.batchSize)
 
-        self.readList.append(tf.squeeze(tf.matmul(tf.expand_dims(self.getLastW(),axis=-2), memory.getLast()),axis=-2))
-        assert helper.check(self.getLastRead(), [self.memoryBitSize], self.batchSize)
-
-    def buildWrite(self, memory, O):
-        assert helper.check(memory.getLast(), [self.memorylength, self.memoryBitSize], self.batchSize)
-        assert helper.check(self.getLastW(), [self.memorylength], self.batchSize)
-        assert helper.check(O, [self.controllerSize], self.batchSize)
-
-        self.wList.append(self.processHead(O, memory.getLast(), self.getLastW()))
-        assert helper.check(self.getLastW(), [self.memorylength], self.batchSize)
-
-        erase = tf.sigmoid(helper.map("map_erase", O, self.memoryBitSize))
-        add = tf.tanh(helper.map("map_add", O, self.memoryBitSize))
-
-        m = tf.multiply(memory.getLast(), 1 - tf.matmul(tf.expand_dims(self.getLastW(), axis=-1),tf.expand_dims(erase, axis=-2)))
-        memory.new(m + tf.matmul(tf.expand_dims(self.getLastW(), axis=-1),tf.expand_dims(add, axis=-2)))
-
-        assert helper.check(memory.getLast(), [self.memorylength, self.memoryBitSize], self.batchSize)
-
-    def processHead(self, O, M, w_):
         k = tf.nn.softplus(helper.map("map_k", O, self.memoryBitSize))
         b = tf.nn.softplus(helper.map("map_b", O, 1))
         g = tf.sigmoid(helper.map("map_g", O, 1))
@@ -50,8 +29,13 @@ class NTMHead(HeadBase):
         wc = self.getCosSimSoftMax(k, M, b)
         wg = self.getWg(wc, g, w_)
         wm = self.getWmFast(wg, s)
-        w = self.getW(wm, y)
-        return w
+
+        #wm can be negtive -> power will push it into the complex domain
+        pow = tf.pow(wm, y)
+        w =  pow / (tf.reduce_sum(pow, axis=-1, keep_dims=True)+0.001)
+
+        assert helper.check(w, [self.memorylength], self.batchSize)
+        self.wList.append(w)
 
     def getWg(self, wc, g, w_):
         assert helper.check(wc, [self.memorylength], self.batchSize)
@@ -98,17 +82,6 @@ class NTMHead(HeadBase):
 
         w = tf.stack([w1,w2,wg,w4,w5], axis=-1)
         result = tf.squeeze(tf.matmul(w, tf.expand_dims(s, axis=-1)), axis=-1)
-
-        assert helper.check(result, [self.memorylength], self.batchSize)
-        return result
-
-    def getW(self, wm, y):
-        assert helper.check(wm, [self.memorylength], self.batchSize)
-        assert helper.check(y, [1], self.batchSize)
-
-        #wm can be negtive -> power will push it into the complex domain
-        pow = tf.pow(wm, y)
-        result =  pow / (tf.reduce_sum(pow, axis=-1, keep_dims=True)+0.001)
 
         assert helper.check(result, [self.memorylength], self.batchSize)
         return result

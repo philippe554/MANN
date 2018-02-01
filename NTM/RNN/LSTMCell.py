@@ -3,9 +3,9 @@ import pandas as pd
 import numpy as np
 
 import helper
-from RNN.RNN import *
+from RNN.RNNBase import *
 
-class LSTMCell(RNN):
+class LSTMCell(RNNBase):
     def __init__(self, name, stateSize):
         super().__init__(name)
         self.stateSize = stateSize

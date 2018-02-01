@@ -3,15 +3,15 @@ import pandas as pd
 import numpy as np
 
 import helper
-from RNN.RNN import *
+from RNN.RNNBase import *
 
-class MANNUnit(RNN):
+class MANNUnit(RNNBase):
     def __init__(self, name):
         super().__init__(name)
+        self.controllers = []
         self.readHeads = []
         self.writeHeads = []
         self.memory = None
-        self.controller = None
 
     def buildTimeLayer(self, input, first=False):
         with tf.variable_scope(self.name):
@@ -19,8 +19,10 @@ class MANNUnit(RNN):
                 self.setup(input)
 
             prevReads = [head.getLastRead() for head in self.readHeads]
+            O = tf.concat([input]+prevReads, axis=-1)
 
-            O = self.controller.buildTimeLayer(tf.concat([input]+prevReads, axis=-1), first)
+            for controller in self.controllers:
+                O = controller.buildTimeLayer(O, first)
 
             for head in self.readHeads:
                 head.buildHead(self.memory, O)
@@ -33,8 +35,6 @@ class MANNUnit(RNN):
     def setup(self, firstInput):
         if self.memory is None:
             raise ValueError("No memory added")
-        if self.controller is None:
-            raise ValueError("No controller added")
 
         if(len(firstInput.get_shape())==2):
             self.batchSize = tf.shape(firstInput)[0]
@@ -42,16 +42,18 @@ class MANNUnit(RNN):
             self.batchSize = None
 
         self.memory.setup(self.batchSize)
+
         for head in self.readHeads:
-            head.setup(self.batchSize, self.memory.bitDepth, self.memory.length, self.controller.stateSize)
+            head.setup(self.batchSize, self.memory.bitDepth, self.memory.length)
+
         for head in self.writeHeads:
-            head.setup(self.batchSize, self.memory.bitDepth, self.memory.length, self.controller.stateSize)
+            head.setup(self.batchSize, self.memory.bitDepth, self.memory.length)
         
     def addMemory(self, memory):
         self.memory = memory
 
     def addController(self, controller):
-        self.controller = controller
+        self.controllers.append(controller)
 
     def addHead(self, head):
         if head.mode == "Read":

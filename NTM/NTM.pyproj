@@ -33,9 +33,13 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MANN\Memory\MemoryBase.py" />
+    <Compile Include="RNN\FFCell.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="RNN\GRUCell.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="RNN\RNNBase.py" />
     <Compile Include="tests\keras.py">
       <SubType>Code</SubType>
     </Compile>
@@ -44,7 +48,6 @@
     </Compile>
     <Compile Include="RNN\LSTMCell.py" />
     <Compile Include="NTM.py" />
-    <Compile Include="RNN\RNN.py" />
     <Compile Include="tests\minitests.py">
       <SubType>Code</SubType>
     </Compile>
@@ -55,14 +58,9 @@
   <ItemGroup>
     <Folder Include="MANN\" />
     <Folder Include="MANN\Head\" />
-    <Folder Include="MANN\Head\__pycache__\" />
     <Folder Include="MANN\Memory\" />
     <Folder Include="RNN\" />
     <Folder Include="tests\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="MANN\Head\__pycache__\HeadBase.cpython-36.pyc" />
-    <Content Include="MANN\Head\__pycache__\NTMHead.cpython-36.pyc" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

@@ -7,12 +7,13 @@ from heads.MANNHeadPrototype import *
 
 class LRUAHead(MANNHeadPrototype):
     def setupStartVariables(self):
-        with tf.variable_scope(self.name):
-            with tf.variable_scope("init"):
-                self.wRead = tf.sigmoid(helper.getTrainableConstant("wRead", self.memorylength, self.batchSize)) #Added sigmoid
-                self.oldWRead = self.wRead
-                self.wWrite = tf.sigmoid(helper.getTrainableConstant("wWrite", self.memorylength, self.batchSize)) #Added sigmoid
-                self.u = tf.sigmoid(helper.getTrainableConstant("u", self.memorylength, self.batchSize)) #Added sigmoid
+        self.wFirst = tf.sigmoid(helper.getTrainableConstant("w", self.memorylength, self.batchSize)) #Added sigmoid
+
+        if self.mode == "Read":
+            self.readFirst = helper.getTrainableConstant("firstRead", self.memoryBitSize, self.batchSize)
+            self.readList = []
+
+        #self.u = tf.sigmoid(helper.getTrainableConstant("u", self.memorylength, self.batchSize)) #Added sigmoid
 
     def buildRead(self, M, O):
         assert helper.check(M, [self.memorylength, self.memoryBitSize], self.batchSize)

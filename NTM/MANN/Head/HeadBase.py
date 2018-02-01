@@ -13,11 +13,10 @@ class HeadBase:
         if self.mode not in ["Read", "Write"]:
             raise ValueError("Set a valid mode")
 
-    def setup(self, batchSize, memoryBitSize, memoryLength, controllerSize):
+    def setup(self, batchSize, memoryBitSize, memoryLength):
         self.batchSize = batchSize
         self.memoryBitSize = memoryBitSize
         self.memorylength = memoryLength
-        self.controllerSize = controllerSize
 
         with tf.variable_scope(self.name):
             with tf.variable_scope("init"):
@@ -25,10 +24,20 @@ class HeadBase:
 
     def buildHead(self, memory, O):
         with tf.variable_scope(self.name):
+            self.getW(O, memory)
+
             if self.mode == "Read":
-                self.buildRead(memory, O)
+                self.readList.append(tf.squeeze(tf.matmul(tf.expand_dims(self.getLastW(),axis=-2), memory.getLast()),axis=-2))
+                assert helper.check(self.getLastRead(), [self.memoryBitSize], self.batchSize)
+
             else:
-                self.buildWrite(memory, O)
+                erase = tf.sigmoid(helper.map("map_erase", O, self.memoryBitSize))
+                add = tf.tanh(helper.map("map_add", O, self.memoryBitSize))
+
+                m = tf.multiply(memory.getLast(), 1 - tf.matmul(tf.expand_dims(self.getLastW(), axis=-1),tf.expand_dims(erase, axis=-2)))
+                memory.new(m + tf.matmul(tf.expand_dims(self.getLastW(), axis=-1),tf.expand_dims(add, axis=-2)))
+
+                assert helper.check(memory.getLast(), [self.memorylength, self.memoryBitSize], self.batchSize)
 
     def getLastW(self):
         if len(self.wList) == 0:
