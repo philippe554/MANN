@@ -23,6 +23,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="helper.py" />
+    <Compile Include="MANN\Head\DNCHead.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="MANN\Head\HeadBase.py" />
     <Compile Include="MANN\Head\LRUAHead.py" />
     <Compile Include="MANN\Head\NTMHead.py" />
