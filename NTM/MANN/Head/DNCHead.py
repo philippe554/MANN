@@ -24,6 +24,8 @@ class DNCHead(HeadBase):
         kR = 0
         bW = 0
         bR = 0
+        erase = 0
+        add = 0
 
         self.u = self.getU(self.u, self.wW, self.wR, f)
         a = self.getA(u)
@@ -34,6 +36,7 @@ class DNCHead(HeadBase):
         memory.new(M)
 
         self.l = self.getL(self.l, self.wW, self.p)
+        #Does not support yet multiple read heads
         cR = self.getCosSimSoftMax(kR, memory.getLast(), bR)
         self.wR = self.getWR(self.wR, self.l, cR, pi)
 
@@ -116,7 +119,7 @@ class DNCHead(HeadBase):
         assert helper.check(c, [self.amountReadHeads, self.memorylength], self.batchSize)
         assert helper.check(pi, [self.amountReadHeads, 3], self.batchSize)
 
-        #Does not work due to multiple read vectors
+        #Does not work yet due to multiple read vectors
         f = tf.mat_mul(l, _w)
         b = tf.matmul(l, _w, transpose_a=True)
         assert helper.check(f, [self.amountReadHeads, self.memorylength], self.batchSize)
