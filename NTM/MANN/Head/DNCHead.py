@@ -7,37 +7,40 @@ from MANN.Head.HeadBase import *
 
 class DNCHead(HeadBase):
     def setupStartVariables(self):
-        self.wFirst = tf.sigmoid(helper.getTrainableConstant("w", self.memorylength, self.batchSize)) #Added sigmoid
-
-        if self.mode == "Read":
-            self.readFirst = helper.getTrainableConstant("firstRead", self.memoryBitSize, self.batchSize)
-            self.readList = []
-
         self.amountReadHeads = 2
 
-    def run(self, O, memory):
-        f = 0
-        gw = 0
-        ga = 0
-        pi = 0
-        kW = 0
-        kR = 0
-        bW = 0
-        bR = 0
-        erase = 0
-        add = 0
+        self.u = tf.zeros([self.batchSize, self.memorylength])
+        self.wW = tf.zeros([self.batchSize, self.memorylength])
+        self.wR = tf.zeros([self.batchSize, self.amountReadHeads, self.memorylength])
+        self.p = tf.zeros([self.batchSize, self.memorylength])
+        self.l = tf.zeros([self.batchSize, self.memorylength, self.memorylength])
+
+    def buildHead(self, memory, O):
+        kR = tf.reshape(helper.map("map_kR", O, self.amountReadHeads * self.memoryBitSize), [-1, self.amountReadHeads, self.memoryBitSize])
+        bR = tf.nn.softplus(helper.map("map_bR", O, self.amountReadHeads)) + 1
+
+        kW = helper.map("map_kW", O, self.memoryBitSize)
+        bW = tf.nn.softplus(helper.map("map_bW", O, 1)) + 1
+
+        erase = tf.sigmoid(helper.map("map_erase", O, self.memoryBitSize))
+        write = helper.map("map_write", O, self.memoryBitSize)
+
+        f = tf.sigmoid(helper.map("map_f", O, self.amountReadHeads))
+
+        gw = tf.sigmoid(helper.map("map_gw", O, 1))
+        ga = tf.sigmoid(helper.map("map_ga", O, 1))
+
+        pi = tf.nn.softmax(tf.reshape(helper.map("map_pi", O, self.amountReadHeads * 3), [-1, self.amountReadHeads, 3]))
 
         self.u = self.getU(self.u, self.wW, self.wR, f)
-        a = self.getA(u)
+        a = self.getA(self.u)
         cW = self.getCosSimSoftMax(kW, memory.getLast(), bW)
         self.wW = self.getWW(gw, ga, a, cW)
 
-        M = memory.getLast()
-        memory.new(M)
+        self.writeToMemory(memory, erase, write, self.wW)
 
         self.l = self.getL(self.l, self.wW, self.p)
-        #Does not support yet multiple read heads
-        cR = self.getCosSimSoftMax(kR, memory.getLast(), bR)
+        cR = self.getCosSimSoftMaxExtra(kR, memory.getLast(), bR, self.amountReadHeads)
         self.wR = self.getWR(self.wR, self.l, cR, pi)
 
         #Calc p after calc l
@@ -49,7 +52,7 @@ class DNCHead(HeadBase):
         assert helper.check(_wR, [self.amountReadHeads, self.memorylength], self.batchSize)
         assert helper.check(f, [self.amountReadHeads], self.batchSize)
 
-        v = tf.reduce_prod(1-tf.exapnd_dim(f, axis=-1)*_wR, axis=-2)
+        v = tf.reduce_prod(1-tf.expand_dims(f, axis=-1)*_wR, axis=-2)
         assert helper.check(v, [self.memorylength], self.batchSize)
 
         u = (_u + _wW - _u*_wW) * v
@@ -72,7 +75,7 @@ class DNCHead(HeadBase):
         assert helper.check(aSorted, [self.memorylength], self.batchSize)
 
         #Far from sure this works, but seems faster/cleaner than implementation of Siraj Raval
-        a = tf.dynamic_stitch(uIndices, aSorted)
+        a = tf.reshape(tf.gather(tf.reshape(aSorted, [-1]), tf.reshape(uIndices, [-1])), [-1, self.memorylength])
         assert helper.check(a, [self.memorylength], self.batchSize)
 
         return a
@@ -84,7 +87,7 @@ class DNCHead(HeadBase):
         assert helper.check(c, [self.memorylength], self.batchSize)
 
         w = gw * (ga*a + (1-ga)*c)
-        assert helper.check(wW, [self.memorylength], self.batchSize)
+        assert helper.check(w, [self.memorylength], self.batchSize)
 
         return w
 
@@ -103,9 +106,9 @@ class DNCHead(HeadBase):
         assert helper.check(_p, [self.memorylength], self.batchSize)
 
         w_l = (1 - w - tf.transpose(w)) * _l
-        assert helper.check(w_p, [self.memorylength, self.memorylength], self.batchSize)
+        assert helper.check(w_l, [self.memorylength, self.memorylength], self.batchSize)
 
-        w_p = tf.matmul(w, _p, transpose_b=True)
+        w_p = tf.matmul(tf.expand_dims(w, axis=-1), tf.expand_dims(_p, axis=-2))
         assert helper.check(w_p, [self.memorylength, self.memorylength], self.batchSize)
 
         l = w_l + w_p

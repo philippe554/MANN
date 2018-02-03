@@ -65,3 +65,24 @@ class HeadBase:
 
         assert helper.check(result, [self.memorylength], self.batchSize)
         return result
+
+    def getCosSimSoftMaxExtra(self, k, M, b, extra):
+        assert helper.check(k, [extra, self.memoryBitSize], self.batchSize)
+        assert helper.check(M, [self.memorylength, self.memoryBitSize], self.batchSize)
+        assert helper.check(b, [extra], self.batchSize)
+
+        dot = tf.squeeze(tf.matmul(tf.expand_dims(M, axis=-3), tf.expand_dims(k, axis=-1)), axis=-1)
+        l1 = tf.sqrt(tf.reduce_sum(tf.pow(k, 2), axis=-1, keep_dims=True))
+        l2 = tf.sqrt(tf.reduce_sum(tf.pow(M, 2), axis=-1))
+        cosSim = tf.divide(dot, l1 * l2 + 0.001)
+
+        result = tf.nn.softmax((b * cosSim) + 0.001)
+
+        assert helper.check(result, [extra, self.memorylength], self.batchSize)
+        return result
+
+    def writeToMemory(self, memory, erase, add, w):
+        m = tf.multiply(memory.getLast(), 1 - tf.matmul(tf.expand_dims(w, axis=-1),tf.expand_dims(erase, axis=-2)))
+        memory.new(m + tf.matmul(tf.expand_dims(w, axis=-1),tf.expand_dims(add, axis=-2)))
+
+        assert helper.check(memory.getLast(), [self.memorylength, self.memoryBitSize], self.batchSize)
