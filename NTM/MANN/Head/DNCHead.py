@@ -9,6 +9,9 @@ class DNCHead(HeadBase):
     def setupStartVariables(self):
         self.amountReadHeads = 2
 
+        self.readFirst = tf.zeros([self.batchSize, self.memoryBitSize * self.amountReadHeads])
+        self.readList = []
+
         self.u = tf.zeros([self.batchSize, self.memorylength])
         self.wW = tf.zeros([self.batchSize, self.memorylength])
         self.wR = tf.zeros([self.batchSize, self.amountReadHeads, self.memorylength])
@@ -42,6 +45,8 @@ class DNCHead(HeadBase):
         self.l = self.getL(self.l, self.wW, self.p)
         cR = self.getCosSimSoftMaxExtra(kR, memory.getLast(), bR, self.amountReadHeads)
         self.wR = self.getWR(self.wR, self.l, cR, pi)
+
+        self.readFromMemory(memory, self.wR, self.amountReadHeads)
 
         #Calc p after calc l
         self.p = self.getP(self.p, self.wW)
@@ -123,12 +128,12 @@ class DNCHead(HeadBase):
         assert helper.check(pi, [self.amountReadHeads, 3], self.batchSize)
 
         #Does not work yet due to multiple read vectors
-        f = tf.mat_mul(l, _w)
-        b = tf.matmul(l, _w, transpose_a=True)
+        f = tf.matmul(_w, l)
+        b = tf.matmul(_w, l, transpose_b=True)
         assert helper.check(f, [self.amountReadHeads, self.memorylength], self.batchSize)
         assert helper.check(b, [self.amountReadHeads, self.memorylength], self.batchSize)
 
-        w = pi[0]*b + pi[1]*c + pi[2]*f
+        w = tf.expand_dims(pi[:,:,0], axis=-1)*b + tf.expand_dims(pi[:,:,1], axis=-1)*c + tf.expand_dims(pi[:,:,2], axis=-1)*f
         assert helper.check(w, [self.amountReadHeads, self.memorylength], self.batchSize)
 
         return w

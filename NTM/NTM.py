@@ -33,7 +33,7 @@ _y = tf.placeholder(tf.float32, shape=(None, outputMask.count(1), bitDepth))
 cell = MANNUnit("L1MANN")
 cell.addMemory(BasicMemory("M1", 24, 10, "Trainable"))
 cell.addController(FFCell("Controller1", 25, tf.tanh))
-cell.addHead(DNCHead("Head1", "Write"))
+cell.addHead(DNCHead("Head1", "Read"))
 
 y = cell.build(x, inputMask=inputMask, outputMask=outputMask, outputSize=bitDepth)
 
