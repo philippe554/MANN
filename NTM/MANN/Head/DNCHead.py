@@ -18,6 +18,9 @@ class DNCHead(HeadBase):
         self.p = tf.zeros([self.batchSize, self.memorylength])
         self.l = tf.zeros([self.batchSize, self.memorylength, self.memorylength])
 
+        self.lMask = tf.ones([self.batchSize, self.memorylength, self.memorylength]) - tf.eye(self.memorylength, batch_shape=[self.batchSize])
+        assert helper.check(self.lMask, [self.memorylength, self.memorylength], self.batchSize)
+
     def buildHead(self, memory, O):
         kR = tf.reshape(helper.map("map_kR", O, self.amountReadHeads * self.memoryBitSize), [-1, self.amountReadHeads, self.memoryBitSize])
         bR = tf.nn.softplus(helper.map("map_bR", O, self.amountReadHeads)) + 1
@@ -57,10 +60,10 @@ class DNCHead(HeadBase):
         assert helper.check(_wR, [self.amountReadHeads, self.memorylength], self.batchSize)
         assert helper.check(f, [self.amountReadHeads], self.batchSize)
 
-        v = tf.reduce_prod(1-tf.expand_dims(f, axis=-1)*_wR, axis=-2)
+        v = tf.reduce_prod(1-(tf.expand_dims(f, axis=-1)*_wR), axis=-2)
         assert helper.check(v, [self.memorylength], self.batchSize)
 
-        u = (_u + _wW - _u*_wW) * v
+        u = (_u + _wW - (_u*_wW)) * v
         assert helper.check(u, [self.memorylength], self.batchSize)
 
         return u
@@ -73,14 +76,14 @@ class DNCHead(HeadBase):
         assert helper.check(uSorted, [self.memorylength], self.batchSize)
         assert helper.check(uIndices, [self.memorylength], self.batchSize)
 
-        cumProd = tf.cumprod(uSorted, axis=-1, exclusive=True)
+        cumProd = tf.cumprod(uSorted + 0.0001, axis=-1, exclusive=True)
         assert helper.check(cumProd, [self.memorylength], self.batchSize)
 
         aSorted = (1 - uSorted) * cumProd
         assert helper.check(aSorted, [self.memorylength], self.batchSize)
 
         #Far from sure this works, but seems faster/cleaner than implementation of Siraj Raval
-        a = tf.reshape(tf.gather(tf.reshape(aSorted, [-1]), tf.reshape(uIndices, [-1])), [-1, self.memorylength])
+        a = tf.reshape(tf.gather(tf.reshape(aSorted, [self.batchSize * self.memorylength]), tf.reshape(uIndices, [self.batchSize * self.memorylength])), [self.batchSize, self.memorylength])
         assert helper.check(a, [self.memorylength], self.batchSize)
 
         return a
@@ -100,7 +103,7 @@ class DNCHead(HeadBase):
         assert helper.check(_p, [self.memorylength], self.batchSize)
         assert helper.check(w, [self.memorylength], self.batchSize)
 
-        p = (1 - tf.reduce_sum(w, axis=-1))*_p + w
+        p = (1 - tf.reduce_sum(w, axis=-1, keep_dims=True))*_p + w
         assert helper.check(p, [self.memorylength], self.batchSize)
 
         return p
@@ -110,13 +113,20 @@ class DNCHead(HeadBase):
         assert helper.check(w, [self.memorylength], self.batchSize)
         assert helper.check(_p, [self.memorylength], self.batchSize)
 
-        w_l = (1 - w - tf.transpose(w)) * _l
+        o = tf.ones([self.batchSize, self.memorylength, self.memorylength])
+        o_w = o - tf.expand_dims(w, axis=-2)
+        assert helper.check(o_w, [self.memorylength, self.memorylength], self.batchSize)
+
+        o_ww = o_w - tf.transpose(tf.expand_dims(w, axis=-2), perm=[0,2,1])
+        assert helper.check(o_ww, [self.memorylength, self.memorylength], self.batchSize)
+
+        w_l = o_ww * _l
         assert helper.check(w_l, [self.memorylength, self.memorylength], self.batchSize)
 
         w_p = tf.matmul(tf.expand_dims(w, axis=-1), tf.expand_dims(_p, axis=-2))
         assert helper.check(w_p, [self.memorylength, self.memorylength], self.batchSize)
 
-        l = w_l + w_p
+        l = (w_l + w_p) * self.lMask
         assert helper.check(l, [self.memorylength, self.memorylength], self.batchSize)
 
         return l
@@ -127,7 +137,6 @@ class DNCHead(HeadBase):
         assert helper.check(c, [self.amountReadHeads, self.memorylength], self.batchSize)
         assert helper.check(pi, [self.amountReadHeads, 3], self.batchSize)
 
-        #Does not work yet due to multiple read vectors
         f = tf.matmul(_w, l)
         b = tf.matmul(_w, l, transpose_b=True)
         assert helper.check(f, [self.amountReadHeads, self.memorylength], self.batchSize)

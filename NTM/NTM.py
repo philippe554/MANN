@@ -54,23 +54,29 @@ accuracy = tf.reduce_mean(tf.cast(tf.equal(_y,p), tf.float32))
 
 helper.printStats(tf.trainable_variables())
 
-tf.summary.scalar('loss', loss)
-tf.summary.scalar('accuracy', accuracy)
+#tf.summary.scalar('loss', loss)
+#tf.summary.scalar('accuracy', accuracy)
 
-for grad, var in grads_and_vars:
-    if grad is not None:
-        tf.summary.histogram("grad/"+var.name, grad)
+#for grad, var in grads_and_vars:
+#    if grad is not None:
+#        tf.summary.histogram("grad/"+var.name, grad)
 
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
 
-    merged = tf.summary.merge_all()
-    writer = tf.summary.FileWriter("C:/temp/tf_log/", sess.graph)
+    #merged = tf.summary.merge_all()
+    #writer = tf.summary.FileWriter("C:/temp/tf_log/", sess.graph)
     # python -m tensorboard.main --logdir="C:/temp/tf_log/"
     # localhost:6006
 
-    plt.ion()
+    #plt.ion()
+
+    X,Y = helper.getNewxyBatch(length, bitDepth, 100)
+    acc, testLoss = sess.run([accuracy, loss], feed_dict={x: X, _y: Y})
+    #writer.add_summary(summary, i)
+
+    print("Start:" + "\tacc: " + str(acc) + "\tLoss: " + str(testLoss))
 
     for i in range(100000):
         trainLoss=0
@@ -83,10 +89,11 @@ with tf.Session() as sess:
         trainLoss = trainLoss/100
 
         X,Y = helper.getNewxyBatch(length, bitDepth, 100)
-        acc, testLoss, summary = sess.run([accuracy, loss, merged], feed_dict={x: X, _y: Y})
-        writer.add_summary(summary, i)
+        acc, testLoss = sess.run([accuracy, loss], feed_dict={x: X, _y: Y})
+        #writer.add_summary(summary, i)
 
-        print("#" + str(i+1) + "\tacc: " + "{0:.4f}".format(acc) + "\tLoss: " + str(int(trainLoss)) + "-" + str(int(testLoss)) + "\tTime: " + "{0:.4f}".format(duration) + "s")
+        print("#" + str(i+1) + "\tacc: " + str(acc) + "\tLoss: " + str(trainLoss) + "-" + str(testLoss) + "\tTime: " + "{0:.4f}".format(duration) + "s")
+        #print("#" + str(i+1) + "\tacc: " + "{0:.4f}".format(acc) + "\tLoss: " + str(int(trainLoss)) + "-" + str(int(testLoss)) + "\tTime: " + "{0:.4f}".format(duration) + "s")
 
         #if(i%1==0):
         #    X,Y = helper.getNewxyBatch(length, bitDepth, 1)

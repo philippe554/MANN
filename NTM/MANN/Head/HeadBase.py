@@ -75,8 +75,8 @@ class HeadBase:
         assert helper.check(dot, [self.memorylength, extra], self.batchSize)
 
         l1 = tf.sqrt(tf.reduce_sum(tf.pow(k, 2), axis=-1, keep_dims=True))
-        l2 = tf.sqrt(tf.reduce_sum(tf.pow(M, 2), axis=-1))
-        cosSim = tf.divide(tf.transpose(dot, perm=[0,2,1]), l1 * l2 + 0.001)
+        l2 = tf.expand_dims(tf.sqrt(tf.reduce_sum(tf.pow(M, 2), axis=-1)), axis=-2)
+        cosSim = tf.divide(tf.transpose(dot, perm=[0,2,1]), tf.matmul(l1, l2) + 0.001)
         assert helper.check(cosSim, [extra, self.memorylength], self.batchSize)
 
         result = tf.nn.softmax((tf.expand_dims(b, axis=-1) * cosSim) + 0.001)
