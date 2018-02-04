@@ -12,7 +12,7 @@ import random
 import time
 import matplotlib.pyplot as plt
 
-length = 3
+length = 10
 bitDepth = 6
 inputMask = length * [0] + [0] + length * [0]
 outputMask = (length) * [0] + [0] + (length) * [1]

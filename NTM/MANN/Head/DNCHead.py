@@ -60,9 +60,11 @@ class DNCHead(HeadBase):
         assert helper.check(_wR, [self.amountReadHeads, self.memorylength], self.batchSize)
         assert helper.check(f, [self.amountReadHeads], self.batchSize)
 
+        #If a reading head reads a memory adress in t-1, and the free gate is activated, release the memory
         v = tf.reduce_prod(1-(tf.expand_dims(f, axis=-1)*_wR), axis=-2)
         assert helper.check(v, [self.memorylength], self.batchSize)
 
+        #If you write to a memory adress, reserve it
         u = (_u + _wW - (_u*_wW)) * v
         assert helper.check(u, [self.memorylength], self.batchSize)
 
@@ -82,7 +84,6 @@ class DNCHead(HeadBase):
         aSorted = (1 - uSorted) * cumProd
         assert helper.check(aSorted, [self.memorylength], self.batchSize)
 
-        #Far from sure this works, but seems faster/cleaner than implementation of Siraj Raval
         a = tf.reshape(tf.gather(tf.reshape(aSorted, [self.batchSize * self.memorylength]), tf.reshape(uIndices, [self.batchSize * self.memorylength])), [self.batchSize, self.memorylength])
         assert helper.check(a, [self.memorylength], self.batchSize)
 
