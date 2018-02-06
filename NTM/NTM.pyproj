@@ -22,6 +22,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="DataGen\MinPath.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="helper.py" />
     <Compile Include="MANN\Head\DNCHead.py">
       <SubType>Code</SubType>
@@ -62,6 +65,7 @@
     <Folder Include="MANN\" />
     <Folder Include="MANN\Head\" />
     <Folder Include="MANN\Memory\" />
+    <Folder Include="DataGen\" />
     <Folder Include="RNN\" />
     <Folder Include="tests\" />
   </ItemGroup>

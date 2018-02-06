@@ -8,37 +8,44 @@ from MANN.Head.LRUAHead import *
 from MANN.Memory.BasicMemory import *
 from RNN.GRUCell import *
 from RNN.FFCell import *
+from RNN.LSTMCell import *
 import helper
+from DataGen import MinPath
 import random
 import time
 import matplotlib.pyplot as plt
 
 length = 10
 bitDepth = 6
-inputMask = length * [0] + [0] + length * [0]
-outputMask = (length) * [0] + [0] + (length) * [1]
+#inputMask = length * [0] + [0] + length * [0]
+#outputMask = (length) * [0] + [0] + (length) * [1]
 
-X,Y = helper.getNewxy(length, bitDepth)
+#X,Y = helper.getNewxy(length, bitDepth)
 
-print("IM: " + str(inputMask))
-print("OM: " + str(outputMask))
-print("Example data point: ")
-print(X)
-print(Y)
+#print("IM: " + str(inputMask))
+#print("OM: " + str(outputMask))
+#print("Example data point: ")
+#print(X)
+#print(Y)
 
-Xfull,Yfull= helper.getNewxyBatch(length, bitDepth, 50000)
+Xfull,Yfull= MinPath.getNewBatch(9, 13, 5, 4, 10000)
+X,Y = helper.getSampleOf(Xfull, Yfull, 1)
+print(X,Y)
 
-x = tf.placeholder(tf.float32, shape=(None, inputMask.count(0), bitDepth+1))
-_y = tf.placeholder(tf.float32, shape=(None, outputMask.count(1), bitDepth))
+x = tf.placeholder(tf.float32, shape=(None, 13+4+1, 9+1))
+_y = tf.placeholder(tf.float32, shape=(None, 1, 5+1))
 
 cell = MANNUnit("L1MANN")
 cell.addMemory(BasicMemory("M1", 24, 10, "Trainable"))
-cell.addController(FFCell("Controller1", 25, tf.tanh))
+cell.addController(LSTMCell("Controller1", 25))
 cell.addHead(DNCHead("Head1", 2))
 #cell.addHead(NTMHead("Head2"))
-cell.addHead(LRUAHead("Head3"))
+#cell.addHead(LRUAHead("Head3"))
 
-y = cell.build(x, inputMask=inputMask, outputMask=outputMask, outputSize=bitDepth)
+inputMask = (13+4+1) * [0]
+outputMask = (13+4) * [0] + 1 * [1]
+
+y = cell.build(x, inputMask=inputMask, outputMask=outputMask, outputSize=5+1)
 
 #y = helper.map("L2", y, bitDepth)
 #W=tf.squeeze(W)
@@ -75,7 +82,7 @@ with tf.Session() as sess:
 
     #plt.ion()
 
-    X,Y = helper.getNewxyBatch(length, bitDepth, 100)
+    X,Y = MinPath.getNewBatch(9, 13, 5, 4, 100)
     acc, testLoss = sess.run([accuracy, loss], feed_dict={x: X, _y: Y})
     #writer.add_summary(summary, i)
 
@@ -91,7 +98,7 @@ with tf.Session() as sess:
         duration = time.time() - start_time
         trainLoss = trainLoss/100
 
-        X,Y = helper.getNewxyBatch(length, bitDepth, 100)
+        X,Y = MinPath.getNewBatch(9, 13, 5, 4, 100)
         acc, testLoss = sess.run([accuracy, loss], feed_dict={x: X, _y: Y})
         #writer.add_summary(summary, i)
 
