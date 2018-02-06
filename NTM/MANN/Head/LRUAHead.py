@@ -3,56 +3,35 @@ import pandas as pd
 import numpy as np
 
 import helper
-from heads.MANNHeadPrototype import *
+from MANN.Head.HeadBase import *
 
-class LRUAHead(MANNHeadPrototype):
+#This head is not in line with paper, needs revision
+
+class LRUAHead(HeadBase):
     def setupStartVariables(self):
-        self.wFirst = tf.sigmoid(helper.getTrainableConstant("w", self.memorylength, self.batchSize)) #Added sigmoid
+        self.wWriteList = [tf.zeros([self.batchSize, self.memory.length])]
+        self.wReadList = [tf.zeros([self.batchSize, self.memory.length])]
+        self.u = tf.zeros([self.batchSize, self.memory.length])
 
-        if self.mode == "Read":
-            self.readFirst = helper.getTrainableConstant("firstRead", self.memoryBitSize, self.batchSize)
-            self.readList = []
+    def getWW(self, O):
+        g = tf.sigmoid(helper.map("map_g", O, 1))
+        b = tf.nn.softplus(helper.map("map_b", O, 1))
 
-        #self.u = tf.sigmoid(helper.getTrainableConstant("u", self.memorylength, self.batchSize)) #Added sigmoid
+        #differentiable approximation of lu
+        lu = tf.nn.softmax((1-tf.sigmoid(self.u))*b)
+        w = g*self.wReadList[-1] + (1-g)*lu
+        self.u = 0.95*self.u + self.wReadList[-1] + w
 
-    def buildRead(self, M, O):
-        assert helper.check(M, [self.memorylength, self.memoryBitSize], self.batchSize)
-        assert helper.check(self.wRead, [self.memorylength], self.batchSize)
-        assert helper.check(O, [self.controllerSize], self.batchSize)
+        assert helper.check(w, [self.memory.length], self.batchSize)
+        return w
 
-        with tf.variable_scope(self.name, reuse=True):
-            with tf.variable_scope("read", reuse=True):
-                k = tf.nn.softplus(helper.map("map_k", O, self.memoryBitSize))
-                b = tf.nn.softplus(helper.map("map_b", O, 1))
+    def getWR(self, O):
+        k = tf.nn.softplus(helper.map("map_k", O, self.memory.bitDepth))
+        b = tf.nn.softplus(helper.map("map_b", O, 1))
 
-                self.oldWRead = self.wRead
-                self.wRead = self.getCosSimSoftMax(k, M, b)
-                result = tf.squeeze(tf.matmul(tf.expand_dims(self.wRead,axis=-2),M),axis=-2)
+        w = self.getCosSimSoftMax(k, b)
 
-        assert helper.check(result, [self.memoryBitSize], self.batchSize)
-        assert helper.check(self.wRead, [self.memorylength], self.batchSize)
-        return result, self.wRead
+        assert helper.check(w, [self.memory.length], self.batchSize)
+        return w
 
-    def buildWrite(self, M, O):
-        assert helper.check(M, [self.memorylength, self.memoryBitSize], self.batchSize)
-        assert helper.check(self.wWrite, [self.memorylength], self.batchSize)
-        assert helper.check(O, [self.controllerSize], self.batchSize)
-
-        with tf.variable_scope(self.name, reuse=True):
-            with tf.variable_scope("write", reuse=True):
-                g = tf.sigmoid(helper.map("map_g", O, 1))
-                b = tf.nn.softplus(helper.map("map_b", O, 1))
-                erase = tf.sigmoid(helper.map("map_erase", O, self.memoryBitSize))
-                add = tf.tanh(helper.map("map_add", O, self.memoryBitSize))
-
-                #differentiable approximation of lu
-                lu = tf.nn.softmax((1-tf.sigmoid(self.u))*b)
-                self.wWrite = g*self.oldWRead + (1-g)*lu
-                self.u = 0.95*self.u + self.wRead + self.wWrite
-
-                M = tf.multiply(M, 1 - tf.matmul(tf.expand_dims(self.wWrite, axis=-1),tf.expand_dims(erase, axis=-2)))
-                result = M + tf.matmul(tf.expand_dims(self.wWrite, axis=-1),tf.expand_dims(add, axis=-2))
-
-        assert helper.check(result, [self.memorylength, self.memoryBitSize], self.batchSize)
-        assert helper.check(self.wWrite, [self.memorylength], self.batchSize)
-        return result, self.wWrite
+    

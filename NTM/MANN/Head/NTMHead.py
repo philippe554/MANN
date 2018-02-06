@@ -7,26 +7,27 @@ from MANN.Head.HeadBase import *
 
 class NTMHead(HeadBase):
     def setupStartVariables(self):
-        self.wFirst = tf.sigmoid(helper.getTrainableConstant("w", self.memorylength, self.batchSize)) #Added sigmoid
+        self.wWriteList = [tf.zeros([self.batchSize, self.memory.length])]
+        self.wReadList = [tf.zeros([self.batchSize, self.memory.length])]
 
-        if self.mode == "Read":
-            self.readFirst = helper.getTrainableConstant("firstRead", self.memoryBitSize, self.batchSize)
-            self.readList = []
+    def getWW(self, O):
+        w_ = self.wWriteList[-1]
+        return self.getW(O, w_)
 
-    def getW(self, O, memory):
-        M = memory.getLast()
-        w_ = self.getLastW()
+    def getWR(self, O):
+        w_ = self.wReadList[-1]
+        return self.getW(O, w_)
 
-        assert helper.check(M, [self.memorylength, self.memoryBitSize], self.batchSize)
-        assert helper.check(w_, [self.memorylength], self.batchSize)
+    def getW(self, O, w_):
+        assert helper.check(w_, [self.memory.length], self.batchSize)
 
-        k = tf.nn.softplus(helper.map("map_k", O, self.memoryBitSize))
+        k = tf.nn.softplus(helper.map("map_k", O, self.memory.bitDepth))
         b = tf.nn.softplus(helper.map("map_b", O, 1))
         g = tf.sigmoid(helper.map("map_g", O, 1))
         s = tf.nn.softmax(tf.sigmoid(helper.map("map_s", O, 5))) #Added sigmoid
         y = tf.nn.softplus(helper.map("map_y", O, 1)) + 1
 
-        wc = self.getCosSimSoftMax(k, M, b)
+        wc = self.getCosSimSoftMax(k, b)
         wg = self.getWg(wc, g, w_)
         wm = self.getWmFast(wg, s)
 
@@ -34,24 +35,24 @@ class NTMHead(HeadBase):
         pow = tf.pow(wm, y)
         w =  pow / (tf.reduce_sum(pow, axis=-1, keep_dims=True)+0.001)
 
-        assert helper.check(w, [self.memorylength], self.batchSize)
-        self.wList.append(w)
+        assert helper.check(w, [self.memory.length], self.batchSize)
+        return w
 
     def getWg(self, wc, g, w_):
-        assert helper.check(wc, [self.memorylength], self.batchSize)
+        assert helper.check(wc, [self.memory.length], self.batchSize)
         assert helper.check(g, [1], self.batchSize)
-        assert helper.check(w_, [self.memorylength], self.batchSize)
+        assert helper.check(w_, [self.memory.length], self.batchSize)
 
         result = g*wc + (1-g)*w_
 
-        assert helper.check(result, [self.memorylength], self.batchSize)
+        assert helper.check(result, [self.memory.length], self.batchSize)
         return result
 
     def getWm(self, wg, s):
-        assert helper.check(wg, [self.memorylength], self.batchSize)
+        assert helper.check(wg, [self.memory.length], self.batchSize)
         assert helper.check(s, [5], self.batchCheck)
 
-        size = self.memorylength
+        size = self.memory.length
         shiftSize = 2
 
         def shift(i):
@@ -67,12 +68,12 @@ class NTMHead(HeadBase):
 
         result = tf.stack([indices(i) for i in range(0,size)], axis=-1)
 
-        assert helper.check(result, [self.memorylength], self.batchSize)
+        assert helper.check(result, [self.memory.length], self.batchSize)
         return result
 
     def getWmFast(self, wg, s):
         #Amount of concat operations is proportional to the shift size, instead of memory length (Only significantly faster on a big memory)
-        assert helper.check(wg, [self.memorylength], self.batchSize)
+        assert helper.check(wg, [self.memory.length], self.batchSize)
         assert helper.check(s, [5], self.batchSize)
 
         w1 = tf.concat([wg[:,-2:], wg[:,:-2]], axis=-1)
@@ -83,5 +84,5 @@ class NTMHead(HeadBase):
         w = tf.stack([w1,w2,wg,w4,w5], axis=-1)
         result = tf.squeeze(tf.matmul(w, tf.expand_dims(s, axis=-1)), axis=-1)
 
-        assert helper.check(result, [self.memorylength], self.batchSize)
+        assert helper.check(result, [self.memory.length], self.batchSize)
         return result

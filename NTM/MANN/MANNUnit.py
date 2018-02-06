@@ -9,8 +9,7 @@ class MANNUnit(RNNBase):
     def __init__(self, name):
         super().__init__(name)
         self.controllers = []
-        self.readHeads = []
-        self.writeHeads = []
+        self.heads = []
         self.memory = None
 
     def buildTimeLayer(self, input, first=False):
@@ -18,17 +17,21 @@ class MANNUnit(RNNBase):
             if first:
                 self.setup(input)
 
-            prevReads = [head.getLastRead() for head in self.readHeads]
+            prevReads = [head.readList[-1] for head in self.heads]
             O = tf.concat([input]+prevReads, axis=-1)
 
             for controller in self.controllers:
                 O = controller.buildTimeLayer(O, first)
+                
+            #All memory changes are queued up, so they dont inflouence each other
+            for head in self.heads:
+                head.buildWriteHead(O)
 
-            for head in self.readHeads:
-                head.buildHead(self.memory, O)
+            #Apply all memory operations at once
+            self.memory.write()
 
-            for head in self.writeHeads:
-                head.buildHead(self.memory, O)
+            for head in self.heads:
+                head.buildReadHead(O)
 
             return O
 
@@ -43,11 +46,8 @@ class MANNUnit(RNNBase):
 
         self.memory.setup(self.batchSize)
 
-        for head in self.readHeads:
-            head.setup(self.batchSize, self.memory.bitDepth, self.memory.length)
-
-        for head in self.writeHeads:
-            head.setup(self.batchSize, self.memory.bitDepth, self.memory.length)
+        for head in self.heads:
+            head.setup(self.batchSize, self.memory)
         
     def addMemory(self, memory):
         self.memory = memory
@@ -56,7 +56,4 @@ class MANNUnit(RNNBase):
         self.controllers.append(controller)
 
     def addHead(self, head):
-        if head.mode == "Read":
-            self.readHeads.append(head)
-        else:
-            self.writeHeads.append(head)
+        self.heads.append(head)
