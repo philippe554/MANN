@@ -7,12 +7,12 @@ import helper
 
 #Define the MANN
 cell = mann.MANNUnit("L1MANN")
-cell.addMemory(mann.BasicMemory("M1", 24, 10))
-cell.addController(mann.FFCell("Controller1", 25))
-cell.addHead(mann.DNCHead("Head1", 2))
+cell.addMemory(mann.BasicMemory("M1", 40, 24))
+cell.addController(mann.GRUCell("Controller1", 32))
+cell.addHead(mann.DNCHead("Head1", 4))
 
 #Define the test data
-generator = mann.MinPath(15, 20, 7, 4)
+generator = mann.MinPath(15, 20, 5, 4)
 #generator = mann.Copy(10,8)
 
 #Define optimizer
@@ -32,8 +32,13 @@ trainStep, p, accuracy, loss = generator.postBuild(_y, y, optimizer)
 helper.printStats(tf.trainable_variables())
 
 #Generate the data
+print("Start generating data")
 trainData = generator.makeDataset(10000)
 testData = generator.makeDataset(1000)
+print("Finished generating data")
+
+#Print class distribution
+print(trainData.C)
 
 #Train network
 with tf.Session() as sess:

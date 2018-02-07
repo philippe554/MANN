@@ -55,7 +55,9 @@ class MinPath(DataGenBase):
     
     def getEntry(self):
         d=-1
-        while(d<1 or d>self.maxLength):
+        target = random.randint(1, self.maxLength)
+        #while(d<1 or d>self.maxLength):
+        while d != target:
             N,E = genGraph(self.nodes, self.edges)
             n1 = random.randint(0,self.nodes-1)
             n2 = random.randint(0,self.nodes-1)
