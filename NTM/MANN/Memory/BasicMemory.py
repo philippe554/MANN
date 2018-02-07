@@ -4,7 +4,7 @@ import helper
 from MANN.Memory.MemoryBase import *
 
 class BasicMemory(MemoryBase):
-    def __init__(self, name, length, bitDepth, profile="SingleValue", data=0):
+    def __init__(self, name, length, bitDepth, profile="SingleValue", data=0.0):
         super().__init__(name)
 
         self.length = length

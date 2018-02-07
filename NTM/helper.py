@@ -47,49 +47,6 @@ def makeStartStateBatch(name, batchSize, shape):
         O = tf.tanh(map(name, C, product, False))
         return tf.expand_dims(tf.ones(shape, tf.float32), 0) * O
 
-def getNewxy(length, bitDepth):
-    data = np.random.randint(2, size=(length, bitDepth))
-    #x = data #np.concatenate((np.concatenate((np.zeros((length,1)),data),axis=1),np.ones((length,bitDepth+1))), axis=0)
-    a1 = np.concatenate((np.zeros((length,1)),data), axis=1)
-    a2 = np.concatenate((a1,np.ones((1,bitDepth+1))), axis=0)
-    x = np.concatenate((a2,np.zeros((length,bitDepth+1))), axis=0)
-    y = data
-    return x,y
-
-def getNewxyLabeled(length, bitDepth):
-    x = np.zeros((length * 4, bitDepth))
-    y = np.zeros((length, bitDepth))
-    for i in range(0, length):
-        for j in range(0, bitDepth): 
-            y[i,j]=random.randint(0,1)
-
-    for i in range(0, length*2):
-        for j in range(0, bitDepth):        
-            if(i%2==0):
-                x[i,j]=0
-            else:
-                x[i,j]=y[int(i/2),j]
-
-    for i in range(0, length*2):
-        for j in range(0, bitDepth):   
-                x[length*2 + i,j]=1
-    return x,y
-
-def getNewxyBatch(length, bitDebth, amount):
-    x=[]
-    y=[]
-    for i in range(0,amount):
-        X,Y = getNewxy(length, bitDebth)
-        x.append(X)
-        y.append(Y)
-    return x,y
-
-def getSampleOf(Xfull, Yfull, K):
-    indices = sorted(random.sample(range(len(Xfull)), K))
-    X = [Xfull[i] for i in indices]
-    Y = [Yfull[i] for i in indices]
-    return X,Y
-
 def printStats(variables):
     print("Trainable variables:")
     total_parameters = 0
@@ -127,3 +84,32 @@ def check(t, shape, batchSize):
     return True
 
 
+
+##### OLD CODE THAT I NEED TO STORE SOMEWHERE #####
+
+#tf.summary.scalar('loss', loss)
+#tf.summary.scalar('accuracy', accuracy)
+
+#for grad, var in grads_and_vars:
+#    if grad is not None:
+#        tf.summary.histogram("grad/"+var.name, grad)
+
+ #writer.add_summary(summary, i)
+
+#merged = tf.summary.merge_all()
+    #writer = tf.summary.FileWriter("C:/temp/tf_log/", sess.graph)
+    # python -m tensorboard.main --logdir="C:/temp/tf_log/"
+    # localhost:6006
+
+    #plt.ion()
+
+
+
+#print("#" + str(i+1) + "\tacc: " + "{0:.4f}".format(acc) + "\tLoss: " + str(int(trainLoss)) + "-" + str(int(testLoss)) + "\tTime: " + "{0:.4f}".format(duration) + "s")
+
+        #if(i%1==0):
+        #    X,Y = helper.getNewxyBatch(length, bitDepth, 1)
+        #    acc, w = sess.run([accuracy, W], feed_dict={x: X, _y: Y})
+        #    plt.imshow(w, vmin=0, vmax=1);
+        #    plt.show()
+        #    plt.pause(0.05)

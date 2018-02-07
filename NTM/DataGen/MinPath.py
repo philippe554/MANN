@@ -1,5 +1,8 @@
 import numpy as np
 import random
+import tensorflow as tf
+
+from DataGen.DataGenBase import *
 
 def genGraph(nodes, edges):
     N = list(range(0,nodes))
@@ -31,37 +34,48 @@ def getPathLength(N, E, n1, n2):
         goto.pop(0)
 
     return D[n2]
+
+class MinPath(DataGenBase):
+    def __init__(self, nodes, edges, maxLength, thinkTime):
+        self.nodes=nodes
+        self.edges=edges
+        self.maxLength=maxLength
+        self.thinkTime=thinkTime
+
+        self.inputLength = self.edges+self.thinkTime+1
+        self.inputSize = self.nodes+1
+
+        self.outputLength = 1
+        self.outputSize = self.maxLength+1
+
+        self.outputMask = (self.edges+self.thinkTime) * [0] + 1 * [1]
+
+        self.crossEntropyFunc = tf.nn.softmax_cross_entropy_with_logits
     
-def makePathLengthEntry(nodes, edges, maxLength, thinkTime):
-    d=-1
-    while(d<0 or d>maxLength):
-        N,E = genGraph(nodes, edges)
-        n1 = random.randint(0,nodes-1)
-        n2 = random.randint(0,nodes-1)
-        d = getPathLength(N,E, n1, n2)
+    def getEntry(self):
+        d=-1
+        while(d<1 or d>self.maxLength):
+            N,E = genGraph(self.nodes, self.edges)
+            n1 = random.randint(0,self.nodes-1)
+            n2 = random.randint(0,self.nodes-1)
+            d = getPathLength(N, E, n1, n2)
 
-    X1 = np.zeros([edges, nodes+1])
+        X1 = np.zeros([self.edges, self.nodes+1], dtype=float)
 
-    for i,e in enumerate(E):
-        X1[i,0]=1
-        X1[i,e]=1
+        for i,e in enumerate(E):
+            X1[i, -1] = 1.0
+            X1[i, e] = 1.0
 
-    X2 = np.zeros([thinkTime, nodes+1])
+        X2 = np.zeros([self.thinkTime, self.nodes+1], dtype=float)
 
-    X3 = np.ones([1,nodes+1])
+        X3 = np.zeros([1, self.nodes+1], dtype=float)
+        X3[0, n1] = 1.0
+        X3[0, n2] = 1.0
+        X3[0, -1] = 1.0
     
-    X = np.concatenate([X1, X2, X3], axis=-2)
+        X = np.concatenate([X1, X2, X3], axis=-2)
 
-    Y = np.zeros([1, maxLength+1])
-    Y[0, d]=1
+        Y = np.zeros([1, self.maxLength+1], dtype=float)
+        Y[0, d]=1.0
 
-    return X,Y
-
-def getNewBatch(nodes, edges, maxLength, thinkTime, amount):
-    x=[]
-    y=[]
-    for i in range(0,amount):
-        X,Y = makePathLengthEntry(nodes, edges, maxLength, thinkTime)
-        x.append(X)
-        y.append(Y)
-    return x,y
+        return X,Y,d

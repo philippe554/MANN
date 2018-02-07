@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>5d39565f-46c0-455f-8f8d-9a022e33d40c</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>NTM.py</StartupFile>
+    <StartupFile>main.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -22,10 +22,25 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="DataGen\Copy.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataGen\Data.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataGen\DataGenBase.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DataGen\MinPath.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="helper.py" />
+    <Compile Include="main.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="mann.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="MANN\Head\DNCHead.py">
       <SubType>Code</SubType>
     </Compile>
@@ -46,17 +61,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="RNN\RNNBase.py" />
-    <Compile Include="tests\keras.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="LSTM.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="RNN\LSTMCell.py" />
-    <Compile Include="NTM.py" />
-    <Compile Include="tests\minitests.py">
-      <SubType>Code</SubType>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="Global|ContinuumAnalytics|Anaconda36-64" />
@@ -67,7 +72,6 @@
     <Folder Include="MANN\Memory\" />
     <Folder Include="DataGen\" />
     <Folder Include="RNN\" />
-    <Folder Include="tests\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
