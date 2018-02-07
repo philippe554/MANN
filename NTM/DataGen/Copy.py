@@ -17,6 +17,7 @@ class Copy(DataGenBase):
 
         self.outputMask = (self.length+1) * [0] + (self.length) * [1]
 
+        self.activationFunc = tf.nn.sigmoid
         self.crossEntropyFunc = tf.nn.sigmoid_cross_entropy_with_logits
     
     def getEntry(self):

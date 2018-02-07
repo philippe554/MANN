@@ -50,6 +50,7 @@ class MinPath(DataGenBase):
 
         self.outputMask = (self.edges+self.thinkTime) * [0] + 1 * [1]
 
+        self.activationFunc = tf.nn.softmax
         self.crossEntropyFunc = tf.nn.softmax_cross_entropy_with_logits
     
     def getEntry(self):

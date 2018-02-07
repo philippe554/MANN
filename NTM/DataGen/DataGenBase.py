@@ -24,10 +24,10 @@ class DataGenBase:
         crossEntropy = self.crossEntropyFunc(labels=_y, logits=y)
         loss = tf.reduce_sum(crossEntropy)
 
-        grads_and_vars = optimizer.compute_gradients(loss)
+        grads_and_vars = optimizer.compute_gradients(crossEntropy)
         trainStep = optimizer.apply_gradients(grads_and_vars)
 
-        p = tf.round(tf.nn.softmax(y))
+        p = tf.round(self.activationFunc(y))
         accuracy = tf.reduce_mean(tf.cast(tf.equal(_y,p), tf.float32))
 
         return trainStep, p, accuracy, loss

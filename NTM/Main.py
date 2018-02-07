@@ -1,7 +1,4 @@
 import tensorflow as tf
-import pandas as pd
-import numpy as np
-import random
 import time
 import matplotlib.pyplot as plt
 
@@ -15,8 +12,8 @@ cell.addController(mann.FFCell("Controller1", 25))
 cell.addHead(mann.DNCHead("Head1", 2))
 
 #Define the test data
-#generator = mann.MinPath(15, 20, 7, 4)
-generator = mann.Copy(10,8)
+generator = mann.MinPath(15, 20, 7, 4)
+#generator = mann.Copy(10,8)
 
 #Define optimizer
 optimizer = tf.train.RMSPropOptimizer(0.001)
