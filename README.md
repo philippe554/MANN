@@ -1,6 +1,15 @@
 # Memory Augmented Neural Network
 
-This package allows you to make a custom Memory Augmented Neural Network (MANN) by combining different architectures proposed by different papers.
+This package allows you to make a custom Memory Augmented Neural Network (MANN) by combining different architectures proposed by different papers. It is fully modular, and can be added to any other RNN in Tensorflow.
+
+## Features
+
+* 3 Types of contollers
+* 2 types of heads
+* modular
+* compatible with batch training
+* generate random toy data to train a model
+
 
 ## Getting Started
 
@@ -10,9 +19,15 @@ Packages needed:
 * Numpy
 * Tensorflow
 
+Import this package:
+
+```
+import mann
+```
+
 ### Setup
 
-The model is setup ready to run, no need to change anything. But if you want, next paragraph explains what can be changed.
+The model is setup ready to run, no need to change anything. The next paragraph explains what can be changed if needed.
 
 First define a MANN in the main.py file as follows (Multiple controllers are put in series, multiple heads are put in parallel):
 
@@ -43,6 +58,33 @@ Finnaly define your optimizer
 ```
 optimizer = tf.train.RMSPropOptimizer(0.001)
 ```
+
+### Use MANN as a layer in a bigger network
+
+First define a MANN as describes above, next make a layer:
+
+```
+y = cell.build(x, mask, outputSize)
+```
+
+where
+
+* x: the input of the layer with size (BatchSize, len(mask), ?)
+* mask: determains which time steps are used to create the output (See example below)
+* outputSize: the size of the last dimention of the output
+* y: the output of the layer with size (BatchSize, amount of ones in mask, outputSize)
+
+Note: there has not yet been a non linearity applied to y
+
+Example on the mask parameter:
+
+If mask is
+
+```
+mask = [0,0,0,1,1,1]
+```
+
+Then your input tensor has 6 time steps, and your output tensor has 3 timesteps. The last 3 outputs of the RNN/MANN are used to make the y
 
 ## Code Structure
 
@@ -78,7 +120,7 @@ Alex Graves et Al. Hybrid computing using a neural network with dynamic external
 
 ### Least Recently Used Acces
 
-*This head is still in production*
+*This head is still in development*
 
 Add a read and write head to the MANN:
 
