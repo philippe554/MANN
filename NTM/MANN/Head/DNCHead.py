@@ -69,7 +69,7 @@ class DNCHead(HeadBase):
         #If you write to a memory adress, reserve it
         u = (_u + _wW - (_u*_wW)) * v
         assert helper.check(u, [self.memory.length], self.batchSize)
-
+        
         return u
 
     def getA(self, u):
