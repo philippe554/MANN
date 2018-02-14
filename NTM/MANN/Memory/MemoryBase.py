@@ -3,6 +3,14 @@ import tensorflow as tf
 import helper
 
 class MemoryBase:
+    '''
+        This is the base class for all sorts of memory
+        
+        Functions to expand in child classes:
+            __init__(self, ...): Setup the parameters
+            setup(self, batchSize): Setup the start variables
+    '''
+
     def __init__(self, name):
         self.name = name
         self.ops = []
