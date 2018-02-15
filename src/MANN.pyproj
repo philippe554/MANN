@@ -3,13 +3,14 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>5d39565f-46c0-455f-8f8d-9a022e33d40c</ProjectGuid>
-    <ProjectHome>.</ProjectHome>
+    <ProjectHome>
+    </ProjectHome>
     <StartupFile>main.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>NTM</Name>
+    <Name>MANN</Name>
     <RootNamespace>NTM</RootNamespace>
     <InterpreterId>Global|ContinuumAnalytics|Anaconda36-64</InterpreterId>
   </PropertyGroup>
@@ -72,6 +73,11 @@
     <Folder Include="MANN\Memory\" />
     <Folder Include="DataGen\" />
     <Folder Include="RNN\" />
+    <Folder Include="UML\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="UML\classes.jpg" />
+    <Content Include="UML\classes.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

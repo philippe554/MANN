@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27004.2006
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "NTM", "NTM\NTM.pyproj", "{5D39565F-46C0-455F-8F8D-9A022E33D40C}"
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "MANN", "src\MANN.pyproj", "{5D39565F-46C0-455F-8F8D-9A022E33D40C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

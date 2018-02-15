@@ -4,7 +4,7 @@ This package allows you to make a custom Memory Augmented Neural Network (MANN) 
 
 ## Features
 
-* 3 Types of contollers
+* 3 types of contollers
 * 2 types of heads
 * modular
 * compatible with batch training
@@ -27,7 +27,7 @@ import mann
 
 ### Setup
 
-The model is setup ready to run, no need to change anything. The next paragraph explains what can be changed if needed.
+The model is setup ready to run, no need to change anything. Run the main.py file to start training. The next paragraph explains what can be changed if needed.
 
 First define a MANN in the main.py file as follows (Multiple controllers are put in series, multiple heads are put in parallel):
 
@@ -90,7 +90,7 @@ Then your input tensor has 6 time steps, and your output tensor has 3 timesteps.
 
 UML Diagram of the code
 
-![Alt text](NTM/UML/classes.jpg?raw=true "Title")
+![Alt text](UML/classes.jpg?raw=true "UML")
 
 ## Papers used
 
