@@ -5,17 +5,17 @@ import helper
 
 #Define the MANN
 cell = mann.MANNUnit("L1MANN")
-cell.addMemory(mann.BasicMemory("M1", 20, 12))
+cell.addMemory(mann.BasicMemory("M1", 20, 14))
 #cell.addController(mann.GRUCell("Controller1", 32))
-cell.addController(mann.FFCell("Controller1", 32))
-cell.addHead(mann.DNCHead("Head1", 1))
+cell.addController(mann.LSTMCell("LSTM", 40))
+cell.addHead(mann.DNCHead("Head1", 2))
 
 #Define the test data
-#generator = mann.MinPath(15, 20, 5, 4)
-generator = mann.Copy(10,8)
+generator = mann.MinPath(7, 10, 4, 8)
+#generator = mann.Copy(10,8)
 
 #Define constants
-TrainSetSize = 10000
+TrainSetSize = 100000
 TestSetSize = 1000
 BatchSize = 100
 TrainSteps = 100

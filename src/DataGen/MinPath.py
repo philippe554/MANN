@@ -50,8 +50,7 @@ class MinPath(DataGenBase):
 
         self.outputMask = (self.edges+self.thinkTime) * [0] + 1 * [1]
 
-        self.activationFunc = tf.nn.softmax
-        self.crossEntropyFunc = tf.nn.softmax_cross_entropy_with_logits
+        self.postBuildMode = "softmax"
     
     def getEntry(self):
         d=-1
@@ -82,3 +81,33 @@ class MinPath(DataGenBase):
         Y[0, d]=1.0
 
         return X,Y,d
+
+if __name__ == "__main__":
+    import networkx as nx
+    import matplotlib.pyplot as plt
+    from string import ascii_lowercase
+
+
+    while True:
+        d=-1
+        target = random.randint(1, 4)
+        while d != target:
+            N,E = genGraph(7, 10)
+            n1 = random.randint(0, 6)
+            n2 = random.randint(0, 6)
+            d = getPathLength(N, E, n1, n2)
+
+        G=nx.Graph()
+        G.add_nodes_from(N)
+        G.add_edges_from(E)
+    
+        pos = nx.spring_layout(G)
+
+        labels = {}
+        labels[n1] = d
+        labels[n2] = d
+ 
+        nx.draw_networkx_nodes(G, pos)
+        nx.draw_networkx_edges(G, pos)
+        nx.draw_networkx_labels(G, pos, labels, font_size=16)
+        plt.show()

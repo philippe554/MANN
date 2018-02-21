@@ -21,13 +21,29 @@ class DataGenBase:
         return Data(x,y,c)
 
     def postBuild(self, _y, y, optimizer):
-        crossEntropy = self.crossEntropyFunc(labels=_y, logits=y)
-        loss = tf.reduce_sum(crossEntropy)
+        if  self.postBuildMode == "softmax":
+            crossEntropy = tf.nn.softmax_cross_entropy_with_logits(labels=_y, logits=y)
+            loss = tf.reduce_sum(crossEntropy)
 
-        grads_and_vars = optimizer.compute_gradients(crossEntropy)
-        trainStep = optimizer.apply_gradients(grads_and_vars)
+            grads_and_vars = optimizer.compute_gradients(loss)
+            trainStep = optimizer.apply_gradients(grads_and_vars)
 
-        p = tf.round(self.activationFunc(y))
-        accuracy = tf.reduce_mean(tf.cast(tf.equal(_y,p), tf.float32))
+            p = tf.nn.softmax(y)
+            accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(_y, -1), tf.argmax(p, -1)), tf.float32))
+        
+            return trainStep, p, accuracy, loss
 
-        return trainStep, p, accuracy, loss
+        elif self.postBuildMode == "sigmoid":
+            crossEntropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=_y, logits=y)
+            loss = tf.reduce_sum(crossEntropy)
+
+            grads_and_vars = optimizer.compute_gradients(loss)
+            trainStep = optimizer.apply_gradients(grads_and_vars)
+
+            p = tf.round(tf.nn.sigmoid(y))
+            accuracy = tf.reduce_mean(tf.cast(tf.equal(_y,p), tf.float32))
+        
+            return trainStep, p, accuracy, loss
+
+        else:
+            return self.customPostBuild(_y, y, optimizer)
