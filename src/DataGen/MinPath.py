@@ -37,18 +37,20 @@ def getPathLength(N, E, n1, n2):
 
 class MinPath(DataGenBase):
     def __init__(self, nodes, edges, maxLength, thinkTime):
+        self.name = "MinPath"
+
         self.nodes=nodes
         self.edges=edges
         self.maxLength=maxLength
         self.thinkTime=thinkTime
 
-        self.inputLength = self.edges+self.thinkTime+1
+        self.inputLength = self.edges+self.thinkTime+1#
         self.inputSize = self.nodes+1
 
-        self.outputLength = 1
+        self.outputLength = 1#
         self.outputSize = self.maxLength+1
 
-        self.outputMask = (self.edges+self.thinkTime) * [0] + 1 * [1]
+        self.outputMask = (self.edges+self.thinkTime) * [0] + 1 * [1]#
 
         self.postBuildMode = "softmax"
     

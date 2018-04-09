@@ -6,6 +6,8 @@ from DataGen.DataGenBase import *
 
 class Copy(DataGenBase):
     def __init__(self, length, size):
+        self.name = "Copy"
+
         self.length = length
         self.size = size
 

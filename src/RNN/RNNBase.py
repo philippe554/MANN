@@ -33,7 +33,8 @@ class RNNBase:
 
         #Loop over all the timesteps
         for i in range(0,x.get_shape()[-2]):
-            print("Building step: "+str(i+1))
+            #print("Building step: "+str(i+1))
+            helper.progress(i+1, int(x.get_shape()[-2]), status="Building RNN")
 
             #Get slice of input, and build network for this time step
             input = tf.squeeze(tf.slice(x, [0,i,0], [-1,1,-1]),[1])

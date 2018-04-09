@@ -1,16 +1,17 @@
 import tensorflow as tf
 import numpy as np
 import random
+import sys
 
-def mapOld(name, input, outputSize, r=tf.AUTO_REUSE):
-    with tf.variable_scope(name, reuse=r):
-        inputSize = int(input.get_shape()[0])
-        m = tf.get_variable("M", initializer=tf.random_normal([inputSize,int(outputSize)]))
-        i1 = tf.reshape(input, [1,-1])
-        i2 = tf.matmul(i1, m)
-        b = tf.get_variable("B", initializer=tf.random_normal(i2.get_shape()))
-        i3 = i2 + b
-        return tf.reshape(i3, [-1])
+#def mapOld(name, input, outputSize, r=tf.AUTO_REUSE):
+#    with tf.variable_scope(name, reuse=r):
+#        inputSize = int(input.get_shape()[0])
+#        m = tf.get_variable("M", initializer=tf.random_normal([inputSize,int(outputSize)]))
+#       i1 = tf.reshape(input, [1,-1])
+#        i2 = tf.matmul(i1, m)
+#        b = tf.get_variable("B", initializer=tf.random_normal(i2.get_shape()))
+#        i3 = i2 + b
+#        return tf.reshape(i3, [-1])
 
 def map(name, input, outputSize, r=tf.AUTO_REUSE):
     if(len(input.get_shape())==1):
@@ -47,17 +48,19 @@ def makeStartStateBatch(name, batchSize, shape):
         O = tf.tanh(map(name, C, product, False))
         return tf.expand_dims(tf.ones(shape, tf.float32), 0) * O
 
-def printStats(variables):
-    print("Trainable variables:")
+def printStats(variables, full=False):
+    if full:
+        print("Trainable variables:")
     total_parameters = 0
     for variable in variables:
         shape = variable.get_shape()
-        print(str(variable.name)+": "+str(shape))
+        if full:
+            print(str(variable.name)+": "+str(shape))
         variable_parameters = 1
         for dim in shape:
             variable_parameters *= dim.value
         total_parameters += variable_parameters
-    print("Number of parameters: " + str(total_parameters))
+    print("Number of parameters in model: " + str(total_parameters))
 
 def getTrainableConstant(name, size, batches=None):
     state = tf.get_variable(name, initializer=tf.random_normal([int(size)]))
@@ -82,6 +85,22 @@ def check(t, shape, batchSize):
             if(t.get_shape().as_list()[i] != v):
                 return False
     return True
+
+# Code from https://gist.github.com/vladignatyev/06860ec2040cb497f0f3
+# The MIT License (MIT)
+# Copyright (c) 2016 Vladimir Ignatev
+def progress(count, total, status=''):
+    bar_len = 30
+    filled_len = int(round(bar_len * count / float(total)))
+
+    percents = round(100.0 * count / float(total), 1)
+    bar = '=' * filled_len + '-' * (bar_len - filled_len)
+
+    if count == total:
+        status = status + "\n"
+
+    sys.stdout.write('[%s] %s%s ... %s\r' % (bar, percents, '%', status))
+    sys.stdout.flush()
 
 
 

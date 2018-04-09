@@ -15,13 +15,15 @@ generator = mann.MinPath(7, 10, 4, 8)
 #generator = mann.Copy(10,8)
 
 #Define constants
-TrainSetSize = 100000
+TrainSetSize = 10000
 TestSetSize = 1000
 BatchSize = 100
 TrainSteps = 100
 
 #Define optimizer
 optimizer = tf.train.RMSPropOptimizer(0.001)
+
+loadFromFile = None
 
 #### End of configuration ####
 
@@ -37,17 +39,19 @@ trainStep, p, accuracy, loss = generator.postBuild(_y, y, optimizer)
 helper.printStats(tf.trainable_variables())
 
 #Generate the data
-print("Start generating data")
-trainData = generator.makeDataset(TrainSetSize)
-testData = generator.makeDataset(TestSetSize)
-print("Finished generating data")
+trainData = generator.makeAndSaveDataset(TrainSetSize, "train")
+testData = generator.makeAndSaveDataset(TestSetSize, "test")
+print("Data ready")
 
 #Print class distribution
 print(trainData.C)
 
 #Train network
 with tf.Session() as sess:
-    sess.run(tf.global_variables_initializer())
+    if loadFromFile is not None:
+        generator.restore(sess, loadFromFile)
+    else:
+        sess.run(tf.global_variables_initializer())
 
     #Get accuracy before training
     X,Y = testData.getBatch(BatchSize)
@@ -71,4 +75,8 @@ with tf.Session() as sess:
 
         #Print data
         print("#" + str(i+1) + "\tacc: " + str(acc) + "\tLoss: " + str(trainLoss) + "-" + str(testLoss) + "\tTime: " + "{0:.4f}".format(duration) + "s")
+
+        if i%50 == 0 and i > 0:
+            generator.save(sess, i, int(trainLoss))
+
         
