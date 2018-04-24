@@ -2,6 +2,7 @@ from DataGen.Copy import *
 from DataGen.Data import *
 from DataGen.DataGenBase import *
 from DataGen.MinPath import *
+from DataGen.VertexCover import *
 
 from MANN.Head.DNCHead import *
 from MANN.Head.HeadBase import *

@@ -67,6 +67,7 @@ class MinPath(DataGenBase):
         X1 = np.zeros([self.edges, self.nodes+1], dtype=float)
 
         for i,e in enumerate(E):
+            raise "This enumeration needs to be checked..."
             X1[i, -1] = 1.0
             X1[i, e] = 1.0
 
