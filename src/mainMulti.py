@@ -13,7 +13,7 @@ cell.addHead(mann.DNCHead("Head1", 2))
 # Define the test data
 # generator = mann.MinPath(7, 10, 4, 8)
 # generator = mann.Copy(10,8)
-generator = mann.VertexCover(7, 10, 4)
+generator = mann.VertexCover(7, 10, 4, 30)
 
 # Define constants
 TrainSetSize = 10000
@@ -29,34 +29,12 @@ loadFromFile = None
 #### End of configuration ####
 
 # Build the network
-x = tf.placeholder(tf.float32, shape=(None, generator.inputLength, generator.inputSize))
-_y = tf.placeholder(tf.float32, shape=(None, generator.possibleRightAnswer, generator.outputLength, generator.outputSize))
+x = generator.getInput()
 y = cell.build(x, generator.outputMask, generator.outputSize)
-
-assert helper.check(_y, [generator.possibleRightAnswer, generator.outputLength, generator.outputSize], BatchSize)
-assert helper.check(y, [generator.outputLength, generator.outputSize], BatchSize)
-
-yy = tf.expand_dims(y, axis=-2)
-assert helper.check(yy, [1, generator.outputLength, generator.outputSize], BatchSize)
-
-sq = tf.square(tf.subtract(yy, _y))
-assert helper.check(sq, [generator.possibleRightAnswer, generator.outputLength, generator.outputSize], BatchSize)
-
-distance = tf.sqrt(tf.reduce_sum(tf.reduce_sum(sq, axis=-1), axis=-1))
-assert helper.check(distance, [generator.possibleRightAnswer], BatchSize)
-
-indices = tf.argmin(distance, axis=-1)
-assert helper.check(indices, [], BatchSize)
-
-num_examples = tf.cast(tf.shape(y)[0], dtype=indices.dtype)
-indices = tf.stack([tf.range(num_examples), indices], axis=-1)
-Y = tf.gather_nd(_y, indices)
-assert helper.check(Y, [generator.outputLength, generator.outputSize], BatchSize)
-
-Y = tf.stop_gradient(Y)
+_y = generator.getLabel()
 
 # Build optimizer
-trainStep, p, accuracy, loss = generator.postBuild(Y, y, optimizer)
+trainStep, p, accuracy, loss = generator.postBuild(_y, y, optimizer)
 
 # Visualize parameters
 helper.printStats(tf.trainable_variables())

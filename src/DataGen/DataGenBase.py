@@ -43,8 +43,14 @@ class DataGenBase:
             pickle.dump(data, open(file, "wb"))
             return data
 
+    def getInput(self):
+        return tf.placeholder(tf.float32, shape=(None, self.inputLength, self.inputSize))
+
+    #def getLabel(self):
+    #    return tf.placeholder(tf.float32, shape=(None, self.outputLength, self.outputSize))
+
     def postBuild(self, _y, y, optimizer):
-        if  self.postBuildMode == "softmax":
+        if self.postBuildMode == "softmax":
             crossEntropy = tf.nn.softmax_cross_entropy_with_logits(labels=_y, logits=y)
             loss = tf.reduce_sum(crossEntropy)
 
@@ -78,7 +84,7 @@ class DataGenBase:
         if self.saver is None:
             self.saver = tf.train.Saver()
 
-        file  = self.modelPath + self.name + "\\" + datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") + " Epoch-" + str(epoch) + " Loss-" + str(loss) + ".ckpt"
+        file = self.modelPath + self.name + "\\" + datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") + " Epoch-" + str(epoch) + " Loss-" + str(loss) + ".ckpt"
        
         self.saver.save(sess, file)
         print("Model saved to path: " + file)
