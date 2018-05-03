@@ -23,15 +23,14 @@ class VertexCover(DataGenBase):
         self.postBuildMode = "sigmoid_custom"
 
     def makeDataset(self, amount, token):
-        file = self.dataPath + self.name + "\\" + str(token) + "-rawVertexCover.csv"
+        file = self.dataPath + self.name + "\\" + token + "RawVertexCover.csv"
         raw = np.genfromtxt(file, delimiter=',', dtype=int)
 
         x = []
         y = []
         c = {}
-        for i in range(amount):
-            helper.progress(i + 1, amount, status="Creating dataset of size " + str(amount))
-            X, Y, C = self.getEntry(raw[i % raw.shape[0], :])
+        for i in range(min(raw.shape[0], amount)):
+            X, Y, C = self.getEntry(raw[i, :])
             x.append(X)
             y.append(Y)
             if C in c:
@@ -96,4 +95,64 @@ class VertexCover(DataGenBase):
         accuracy = tf.reduce_mean(tf.reduce_min(tf.cast(tf.equal(_Y, p), tf.float32), axis=-1))
 
         return trainStep, p, accuracy, loss
+
+    def isVertexCover(self, g, c):
+        covered = np.zeros([self.nodes])
+
+        for i in range(self.nodes):
+            if c[i] == 1:
+                covered[i] = 1
+
+                for j in range(self.edges):
+                    if g[j, 0] == i:
+                        covered[g[j, 1]] = 1
+
+                    if g[j, 1] == i:
+                        covered[g[j, 0]] = 1
+
+        return np.sum(covered) == self.nodes
+
+
+    def convertToGraph(self, x):
+        x = x[0:self.edges, 0:self.nodes]
+        e = []
+        for i in range(self.edges):
+            e.append(np.argsort(x[i,:])[0:2])
+        return np.array(e)
+
+    def process(self, X, Y, R):
+        X = np.rint(np.array(X))
+        Y = np.rint(np.array(Y))
+        R = np.rint(np.array(R))
+
+        totalOptimal = 0
+        subOptimal = 0
+        noCover = 0
+        coverSizeFound = 0
+
+        for i in range(Y.shape[0]):
+            x = X[i]
+            y = Y[i]
+            r = R[i]
+
+            optimalFound = False
+            for j in range(y.shape[0]):
+                if np.allclose(r, y[j]):
+                    optimalFound = True
+
+            if optimalFound:
+                totalOptimal += 1
+            else:
+                g = self.convertToGraph(x)
+                if self.isVertexCover(g, r[0]):
+                    subOptimal += 1
+                else:
+                    noCover += 1
+
+            if np.sum(r) == np.sum(y[0]):
+                coverSizeFound += 1
+
+
+        print(totalOptimal, subOptimal, noCover, coverSizeFound)
+
 

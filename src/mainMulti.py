@@ -6,9 +6,14 @@ import helper
 # Define the MANN
 cell = mann.MANNUnit("L1MANN")
 cell.addMemory(mann.BasicMemory("M1", 20, 14))
-# cell.addController(mann.GRUCell("Controller1", 32))
-cell.addController(mann.LSTMCell("LSTM", 40))
-cell.addHead(mann.DNCHead("Head1", 2))
+#cell.addController(mann.GRUCell("Controller1", 32))
+#cell.addController(mann.LSTMCell("LSTM", 40))
+cell.addController(mann.FFCell("FF1", 40))
+#cell.addController(mann.FFCell("FF2", 40))
+cell.addHead(mann.DNCHead("Head1", 3))
+#cell.addHead(mann.NTMHead("Head1"))
+
+#cell = mann.LSTMCell("LSTM", 40)
 
 # Define the test data
 # generator = mann.MinPath(7, 10, 4, 8)
@@ -16,15 +21,16 @@ cell.addHead(mann.DNCHead("Head1", 2))
 generator = mann.VertexCover(7, 10, 4, 30)
 
 # Define constants
-TrainSetSize = 10000
-TestSetSize = 1000
+TrainSetSize = 100000
+TestSetSize = 10000
 BatchSize = 100
 TrainSteps = 100
 
 # Define optimizer
-optimizer = tf.train.RMSPropOptimizer(0.001)
+#optimizer = tf.train.RMSPropOptimizer(0.001)
+optimizer = tf.train.AdamOptimizer()
 
-loadFromFile = None
+loadFromFile = None#"2018-05-03 14-09-22 Epoch-350 Loss-168.ckpt"
 
 #### End of configuration ####
 
@@ -41,7 +47,7 @@ helper.printStats(tf.trainable_variables())
 
 # Generate the data
 trainData = generator.makeAndSaveDataset(TrainSetSize, "train")
-#testData = generator.makeAndSaveDataset(TestSetSize, "test")
+testData = generator.makeAndSaveDataset(TestSetSize, "test")
 print("Data ready")
 
 # Print class distribution
@@ -55,7 +61,7 @@ with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
 
     # Get accuracy before training
-    X, Y = trainData.getBatch(BatchSize)
+    X, Y = testData.getBatch(BatchSize)
     acc, testLoss = sess.run([accuracy, loss], feed_dict={x: X, _y: Y})
     print("Start:" + "\tacc: " + str(acc) + "\tLoss: " + str(testLoss))
 
@@ -71,8 +77,10 @@ with tf.Session() as sess:
         trainLoss = trainLoss / BatchSize
 
         # Get accuracy
-        X, Y = trainData.getBatch(BatchSize)
-        acc, testLoss = sess.run([accuracy, loss], feed_dict={x: X, _y: Y})
+        X, Y = testData.getBatch(BatchSize)
+        acc, testLoss, r = sess.run([accuracy, loss, p], feed_dict={x: X, _y: Y})
+
+        generator.process(X, Y, r)
 
         # Print data
         print("#" + str(i + 1) + "\tacc: " + str(acc) + "\tLoss: " + str(trainLoss) + "-" + str(
