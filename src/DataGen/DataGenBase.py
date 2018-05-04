@@ -77,6 +77,9 @@ class DataGenBase:
         else:
             return self.customPostBuild(_y, y, optimizer)
 
+    def process(self, X, Y, R):
+        pass
+
     def save(self, sess, epoch, loss):
         if not os.path.exists(self.modelPath + self.name + "\\"):
             os.makedirs(self.modelPath + self.name + "\\")

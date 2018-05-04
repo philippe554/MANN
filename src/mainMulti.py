@@ -4,16 +4,16 @@ import mann
 import helper
 
 # Define the MANN
-cell = mann.MANNUnit("L1MANN")
-cell.addMemory(mann.BasicMemory("M1", 20, 14))
+#cell = mann.MANNUnit("L1MANN")
+#cell.addMemory(mann.BasicMemory("M1", 20, 14))
 #cell.addController(mann.GRUCell("Controller1", 32))
 #cell.addController(mann.LSTMCell("LSTM", 40))
-cell.addController(mann.FFCell("FF1", 40))
+#cell.addController(mann.FFCell("FF1", 40))
 #cell.addController(mann.FFCell("FF2", 40))
-cell.addHead(mann.DNCHead("Head1", 3))
+#cell.addHead(mann.DNCHead("Head1", 2))
 #cell.addHead(mann.NTMHead("Head1"))
 
-#cell = mann.LSTMCell("LSTM", 40)
+cell = mann.LSTMCell("LSTM", 40)
 
 # Define the test data
 # generator = mann.MinPath(7, 10, 4, 8)
@@ -27,10 +27,10 @@ BatchSize = 100
 TrainSteps = 100
 
 # Define optimizer
-#optimizer = tf.train.RMSPropOptimizer(0.001)
-optimizer = tf.train.AdamOptimizer()
+optimizer = tf.train.RMSPropOptimizer(0.0001)
+#optimizer = tf.train.AdamOptimizer()
 
-loadFromFile = None#"2018-05-03 14-09-22 Epoch-350 Loss-168.ckpt"
+loadFromFile = "2018-05-04 13-49-24 Epoch-1500 Loss-102.ckpt"
 
 #### End of configuration ####
 
@@ -51,7 +51,7 @@ testData = generator.makeAndSaveDataset(TestSetSize, "test")
 print("Data ready")
 
 # Print class distribution
-print(trainData.C)
+print("Class distribution:", trainData.C)
 
 # Train network
 with tf.Session() as sess:
@@ -80,11 +80,12 @@ with tf.Session() as sess:
         X, Y = testData.getBatch(BatchSize)
         acc, testLoss, r = sess.run([accuracy, loss, p], feed_dict={x: X, _y: Y})
 
-        generator.process(X, Y, r)
+        out = helper.strfixed("#" + str(i + 1), 5) + " acc: " + helper.strfixedFloat(acc, 4, 2)
+        out += " ║ Loss: " + helper.strfixedFloat(trainLoss, 7, 4) + ", " + helper.strfixedFloat(testLoss, 7, 4)
+        out += " ║ Time: " + helper.strfixedFloat(duration, 5, 2) + "s "
+        out += " ║ " + generator.process(X, Y, r)
 
-        # Print data
-        print("#" + str(i + 1) + "\tacc: " + str(acc) + "\tLoss: " + str(trainLoss) + "-" + str(
-            testLoss) + "\tTime: " + "{0:.4f}".format(duration) + "s")
+        print(out)
 
         if i % 50 == 0 and i > 0:
             generator.save(sess, i, int(trainLoss))

@@ -102,7 +102,13 @@ def progress(count, total, status=''):
     sys.stdout.write('[%s] %s%s ... %s\r' % (bar, percents, '%', status))
     sys.stdout.flush()
 
+def strfixed(i, l):
+    r = str(i)
+    return " "*(l-len(r)) + r
 
+def strfixedFloat(i, l, d):
+    r = ("{0:."+str(d)+"f}").format(i)
+    return " "*(l-len(r)) + r
 
 ##### OLD CODE THAT I NEED TO STORE SOMEWHERE #####
 

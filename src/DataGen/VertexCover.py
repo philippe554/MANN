@@ -86,7 +86,8 @@ class VertexCover(DataGenBase):
         _Y = tf.stop_gradient(_Y)
 
         crossEntropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=_Y, logits=y)
-        loss = tf.reduce_sum(crossEntropy)
+        #loss = tf.reduce_sum(crossEntropy)
+        loss = tf.reduce_mean(crossEntropy)
 
         grads_and_vars = optimizer.compute_gradients(loss)
         trainStep = optimizer.apply_gradients(grads_and_vars)
@@ -96,8 +97,8 @@ class VertexCover(DataGenBase):
 
         return trainStep, p, accuracy, loss
 
-    def isVertexCover(self, g, c):
-        covered = np.zeros([self.nodes])
+    def getCoveredSet(self, g, c):
+        covered = np.zeros([self.nodes], dtype=np.int)
 
         for i in range(self.nodes):
             if c[i] == 1:
@@ -110,14 +111,24 @@ class VertexCover(DataGenBase):
                     if g[j, 1] == i:
                         covered[g[j, 0]] = 1
 
-        return np.sum(covered) == self.nodes
+        return covered
 
+    def getAmountUncovered(self, g, c):
+        covered = self.getCoveredSet(g, c)
+
+        return self.nodes - np.sum(covered)
+
+    def isVertexCover(self, g, c):
+        covered = self.getCoveredSet(g, c)
+
+        return np.sum(covered) == self.nodes
 
     def convertToGraph(self, x):
         x = x[0:self.edges, 0:self.nodes]
         e = []
         for i in range(self.edges):
-            e.append(np.argsort(x[i,:])[0:2])
+            e.append(np.argsort(x[i, :]*-1)[0:2])
+
         return np.array(e)
 
     def process(self, X, Y, R):
@@ -127,8 +138,9 @@ class VertexCover(DataGenBase):
 
         totalOptimal = 0
         subOptimal = 0
-        noCover = 0
+        noCover = np.zeros([self.nodes+1], dtype=np.int)
         coverSizeFound = 0
+
 
         for i in range(Y.shape[0]):
             x = X[i]
@@ -140,19 +152,25 @@ class VertexCover(DataGenBase):
                 if np.allclose(r, y[j]):
                     optimalFound = True
 
+            g = self.convertToGraph(x)
+
             if optimalFound:
                 totalOptimal += 1
-            else:
-                g = self.convertToGraph(x)
-                if self.isVertexCover(g, r[0]):
-                    subOptimal += 1
-                else:
-                    noCover += 1
+            elif self.isVertexCover(g, r[0]):
+                subOptimal += 1
+
+            uncoveredSize = self.getAmountUncovered(g, r[0])
+            noCover[uncoveredSize] += 1
 
             if np.sum(r) == np.sum(y[0]):
                 coverSizeFound += 1
 
+        out = "Total: " + str(Y.shape[0])
+        out += " ║ Optimal: " + helper.strfixed(totalOptimal, 3)
+        out += " ║ Sub optimal: " + helper.strfixed(subOptimal, 3)
+        out += " ║ Size found: " + helper.strfixed(coverSizeFound, 3)
+        out += " ║ Uncovered dist.: " + str(noCover)
 
-        print(totalOptimal, subOptimal, noCover, coverSizeFound)
+        return out
 
 
