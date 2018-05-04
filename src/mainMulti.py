@@ -4,16 +4,16 @@ import mann
 import helper
 
 # Define the MANN
-#cell = mann.MANNUnit("L1MANN")
-#cell.addMemory(mann.BasicMemory("M1", 20, 14))
+cell = mann.MANNUnit("L1MANN")
+cell.addMemory(mann.BasicMemory("M1", 20, 14))
 #cell.addController(mann.GRUCell("Controller1", 32))
-#cell.addController(mann.LSTMCell("LSTM", 40))
+cell.addController(mann.LSTMCell("LSTM", 40))
 #cell.addController(mann.FFCell("FF1", 40))
 #cell.addController(mann.FFCell("FF2", 40))
-#cell.addHead(mann.DNCHead("Head1", 2))
+cell.addHead(mann.DNCHead("Head1", 2))
 #cell.addHead(mann.NTMHead("Head1"))
 
-cell = mann.LSTMCell("LSTM", 40)
+#cell = mann.LSTMCell("LSTM1", 40)
 
 # Define the test data
 # generator = mann.MinPath(7, 10, 4, 8)
@@ -25,12 +25,14 @@ TrainSetSize = 100000
 TestSetSize = 10000
 BatchSize = 100
 TrainSteps = 100
+TestBatchSize = 100
 
 # Define optimizer
-optimizer = tf.train.RMSPropOptimizer(0.0001)
+optimizer = tf.train.RMSPropOptimizer(0.01)
 #optimizer = tf.train.AdamOptimizer()
+#ptimizer = tf.train.AdadeltaOptimizer(0.01)
 
-loadFromFile = "2018-05-04 13-49-24 Epoch-1500 Loss-102.ckpt"
+loadFromFile = "2018-05-04 15-14-33 Epoch-50 Loss-0.ckpt"
 
 #### End of configuration ####
 
@@ -74,10 +76,10 @@ with tf.Session() as sess:
             _, l = sess.run([trainStep, loss], feed_dict={x: X, _y: Y})
             trainLoss += l
         duration = time.time() - start_time
-        trainLoss = trainLoss / BatchSize
+        trainLoss = trainLoss / TrainSteps
 
         # Get accuracy
-        X, Y = testData.getBatch(BatchSize)
+        X, Y = testData.getBatch(TestBatchSize)
         acc, testLoss, r = sess.run([accuracy, loss, p], feed_dict={x: X, _y: Y})
 
         out = helper.strfixed("#" + str(i + 1), 5) + " acc: " + helper.strfixedFloat(acc, 4, 2)

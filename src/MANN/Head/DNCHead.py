@@ -18,7 +18,8 @@ class DNCHead(HeadBase):
         assert helper.check(self.lMask, [self.memory.length, self.memory.length], self.batchSize)
 
     def getWW(self, O):
-        self.u = self.getU(O, self.u, self.wWriteList[-1], self.wReadList[-1])
+        f = tf.sigmoid(helper.map("map_f", O, self.amountReadHeads))
+        self.u = self.getU(f, self.u, self.wWriteList[-1], self.wReadList[-1])
         a = self.getA(self.u)
 
         kW = helper.map("map_kW", O, self.memory.bitDepth)
@@ -56,11 +57,11 @@ class DNCHead(HeadBase):
 
         return w        
 
-    def getU(self, O, _u, _wW, _wR):
+    def getU(self, f, _u, _wW, _wR):
+        assert helper.check(f, [self.amountReadHeads], self.batchSize)
         assert helper.check(_u, [self.memory.length], self.batchSize)
         assert helper.check(_wW, [self.memory.length], self.batchSize)
         assert helper.check(_wR, [self.amountReadHeads, self.memory.length], self.batchSize)
-        f = tf.sigmoid(helper.map("map_f", O, self.amountReadHeads))
 
         #If a reading head reads a memory adress in t-1, and the free gate is activated, release the memory
         v = tf.reduce_prod(1-(tf.expand_dims(f, axis=-1)*_wR), axis=-2)

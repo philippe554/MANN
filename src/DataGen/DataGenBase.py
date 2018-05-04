@@ -52,7 +52,7 @@ class DataGenBase:
     def postBuild(self, _y, y, optimizer):
         if self.postBuildMode == "softmax":
             crossEntropy = tf.nn.softmax_cross_entropy_with_logits(labels=_y, logits=y)
-            loss = tf.reduce_sum(crossEntropy)
+            loss = tf.reduce_mean(crossEntropy)
 
             grads_and_vars = optimizer.compute_gradients(loss)
             trainStep = optimizer.apply_gradients(grads_and_vars)
@@ -64,7 +64,7 @@ class DataGenBase:
 
         elif self.postBuildMode == "sigmoid":
             crossEntropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=_y, logits=y)
-            loss = tf.reduce_sum(crossEntropy)
+            loss = tf.reduce_mean(crossEntropy)
 
             grads_and_vars = optimizer.compute_gradients(loss)
             trainStep = optimizer.apply_gradients(grads_and_vars)

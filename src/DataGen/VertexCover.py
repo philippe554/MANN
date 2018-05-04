@@ -86,7 +86,6 @@ class VertexCover(DataGenBase):
         _Y = tf.stop_gradient(_Y)
 
         crossEntropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=_Y, logits=y)
-        #loss = tf.reduce_sum(crossEntropy)
         loss = tf.reduce_mean(crossEntropy)
 
         grads_and_vars = optimizer.compute_gradients(loss)
