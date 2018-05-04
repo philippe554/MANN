@@ -18,16 +18,20 @@ class DNCHead(HeadBase):
         assert helper.check(self.lMask, [self.memory.length, self.memory.length], self.batchSize)
 
     def getWW(self, O):
-        f = tf.sigmoid(helper.map("map_f", O, self.amountReadHeads))
+        mapping = [self.amountReadHeads, self.memory.bitDepth, 1, 1, 1]
+        o = helper.map("map_wwo", O, np.sum(mapping))
+        o1, o2, o3, o4, o5 = tf.split(o, mapping, -1)
+
+        f = tf.sigmoid(o1)
         self.u = self.getU(f, self.u, self.wWriteList[-1], self.wReadList[-1])
         a = self.getA(self.u)
 
-        kW = helper.map("map_kW", O, self.memory.bitDepth)
-        bW = tf.nn.softplus(helper.map("map_bW", O, 1)) + 1
+        kW = o2
+        bW = tf.nn.softplus(o3) + 1
         c = self.getCosSimSoftMax(kW, bW)
 
-        gw = tf.sigmoid(helper.map("map_gw", O, 1))
-        ga = tf.sigmoid(helper.map("map_ga", O, 1))
+        gw = tf.sigmoid(o4)
+        ga = tf.sigmoid(o5)
 
         w = gw * (ga*a + (1-ga)*c)
         assert helper.check(w, [self.memory.length], self.batchSize)
@@ -35,6 +39,10 @@ class DNCHead(HeadBase):
         return w
 
     def getWR(self, O):
+        mapping = [self.amountReadHeads * self.memory.bitDepth, self.amountReadHeads, self.amountReadHeads * 3]
+        o = helper.map("map_wro", O, np.sum(mapping))
+        o1, o2, o3 = tf.split(o, mapping, -1)
+
         self.l = self.getL(self.l, self.wWriteList[-1], self.p)
 
         _w = self.wReadList[-1]
@@ -45,12 +53,12 @@ class DNCHead(HeadBase):
         assert helper.check(f, [self.amountReadHeads, self.memory.length], self.batchSize)
         assert helper.check(b, [self.amountReadHeads, self.memory.length], self.batchSize)
 
-        kR = tf.reshape(helper.map("map_kR", O, self.amountReadHeads * self.memory.bitDepth), [-1, self.amountReadHeads, self.memory.bitDepth])
-        bR = tf.nn.softplus(helper.map("map_bR", O, self.amountReadHeads)) + 1
+        kR = tf.reshape(o1, [-1, self.amountReadHeads, self.memory.bitDepth])
+        bR = tf.nn.softplus(o2) + 1
         c = self.getCosSimSoftMaxExtra(kR, bR, self.amountReadHeads)
 
-        pi = tf.nn.softmax(tf.reshape(helper.map("map_pi", O, self.amountReadHeads * 3), [-1, self.amountReadHeads, 3]))
-        w = tf.expand_dims(pi[:,:,0], axis=-1)*b + tf.expand_dims(pi[:,:,1], axis=-1)*c + tf.expand_dims(pi[:,:,2], axis=-1)*f
+        pi = tf.nn.softmax(tf.reshape(o3, [-1, self.amountReadHeads, 3]))
+        w = tf.expand_dims(pi[:, :, 0], axis=-1)*b + tf.expand_dims(pi[:, :, 1], axis=-1)*c + tf.expand_dims(pi[:, :, 2], axis=-1)*f
         assert helper.check(w, [self.amountReadHeads, self.memory.length], self.batchSize)
 
         self.p = self.getP(self.p, self.wWriteList[-1])

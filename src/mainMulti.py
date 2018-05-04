@@ -32,7 +32,7 @@ optimizer = tf.train.RMSPropOptimizer(0.01)
 #optimizer = tf.train.AdamOptimizer()
 #ptimizer = tf.train.AdadeltaOptimizer(0.01)
 
-loadFromFile = "2018-05-04 15-14-33 Epoch-50 Loss-0.ckpt"
+loadFromFile = None #"2018-05-04 15-14-33 Epoch-50 Loss-0.ckpt"
 
 #### End of configuration ####
 
