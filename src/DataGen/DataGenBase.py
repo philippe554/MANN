@@ -34,10 +34,7 @@ class DataGenBase:
         return Data(x,y,c)
 
     def makeAndSaveDataset(self, amount, token):
-        dataPath = os.path.join(os.path.abspath(__file__), os.pardir, os.pardir, os.pardir, "data", self.name)
-
-        #if not os.path.exists(self.dataPath + self.name + "\\"):
-        #    os.makedirs(self.dataPath + self.name + "\\")
+        dataPath = os.path.join(os.getcwd(), os.pardir, "data", self.name)
 
         if not os.path.exists(dataPath):
            os.makedirs(dataPath)
@@ -89,7 +86,7 @@ class DataGenBase:
         pass
 
     def save(self, sess, epoch, loss):
-        modelPath = os.path.join(os.path.abspath(__file__), os.pardir, os.pardir, os.pardir, "models", self.name)
+        modelPath = os.path.join(os.getcwd(), os.pardir, "models", self.name)
 
         if not os.path.exists(modelPath):
            os.makedirs(modelPath)
@@ -106,7 +103,7 @@ class DataGenBase:
         if self.saver is None:
             self.saver = tf.train.Saver()
 
-        modelPath = os.path.join(os.path.abspath(__file__), os.pardir, os.pardir, os.pardir, "models", self.name)
+        modelPath = os.path.join(os.getcwd(), os.pardir, "models", self.name)
         file = os.path.join(modelPath, file)
 
         self.saver.restore(sess, os.path.abspath(file))

@@ -24,7 +24,7 @@ class VertexCover(DataGenBase):
         self.postBuildMode = "sigmoid_custom"
 
     def makeDataset(self, amount, token):
-        file = os.path.join(os.path.abspath(__file__), os.pardir, os.pardir, os.pardir, "data", self.name, token + "RawVertexCover.csv")
+        file = os.path.join(os.getcwd(), os.pardir, "data", self.name, token + "RawVertexCover.csv")
         raw = np.genfromtxt(os.path.abspath(file), delimiter=',', dtype=int)
 
         x = []
