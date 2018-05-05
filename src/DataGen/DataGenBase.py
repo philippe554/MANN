@@ -12,8 +12,11 @@ import tensorflow as tf
 class DataGenBase:
     saver = None
 
-    modelPath = os.path.dirname(os.path.abspath(__file__)) + "\\..\\..\\models\\"
-    dataPath = os.path.dirname(os.path.abspath(__file__)) + "\\..\\..\\data\\"
+    #modelPath = os.path.dirname(os.path.abspath(__file__)) + "\\..\\..\\models\\"
+    #dataPath = os.path.dirname(os.path.abspath(__file__)) + "\\..\\..\\data\\"
+
+    #modelPath = os.path.join(os.path.abspath(__file__), os.pardir, os.pardir, "models")
+
 
     def makeDataset(self, amount, token):
         x=[]
@@ -31,16 +34,21 @@ class DataGenBase:
         return Data(x,y,c)
 
     def makeAndSaveDataset(self, amount, token):
-        if not os.path.exists(self.dataPath + self.name + "\\"):
-            os.makedirs(self.dataPath + self.name + "\\")
+        dataPath = os.path.join(os.path.abspath(__file__), os.pardir, os.pardir, os.pardir, "data", self.name)
 
-        file = self.dataPath + self.name + "\\" + str(token)+"-"+str(amount)+".p"
+        #if not os.path.exists(self.dataPath + self.name + "\\"):
+        #    os.makedirs(self.dataPath + self.name + "\\")
+
+        if not os.path.exists(dataPath):
+           os.makedirs(dataPath)
+
+        file = os.path.join(dataPath, str(token)+"-"+str(amount)+".p")
 
         try:
-            return pickle.load(open(file,"rb"))
+            return pickle.load(open(os.path.abspath(file),"rb"))
         except:
             data = self.makeDataset(amount, token)
-            pickle.dump(data, open(file, "wb"))
+            pickle.dump(data, open(os.path.abspath(file), "wb"))
             return data
 
     def getInput(self):
@@ -81,22 +89,25 @@ class DataGenBase:
         pass
 
     def save(self, sess, epoch, loss):
-        if not os.path.exists(self.modelPath + self.name + "\\"):
-            os.makedirs(self.modelPath + self.name + "\\")
+        modelPath = os.path.join(os.path.abspath(__file__), os.pardir, os.pardir, os.pardir, "models", self.name)
+
+        if not os.path.exists(modelPath):
+           os.makedirs(modelPath)
 
         if self.saver is None:
             self.saver = tf.train.Saver()
 
-        file = self.modelPath + self.name + "\\" + datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") + " Epoch-" + str(epoch) + " Loss-" + str(loss) + ".ckpt"
-       
-        self.saver.save(sess, file)
-        print("Model saved to path: " + file)
+        file = os.path.join(modelPath, datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") + " Epoch-" + str(epoch ) + " Loss-" +str(loss*100))
+
+        self.saver.save(sess, os.path.abspath(file))
+        print("Model saved to path: " + os.path.abspath(file))
 
     def restore(self, sess, file):
         if self.saver is None:
             self.saver = tf.train.Saver()
 
-        file = self.modelPath + self.name + "\\" + file
+        modelPath = os.path.join(os.path.abspath(__file__), os.pardir, os.pardir, os.pardir, "models", self.name)
+        file = os.path.join(modelPath, file)
 
-        self.saver.restore(sess, file)
-        print("Model restores from path: " + file)
+        self.saver.restore(sess, os.path.abspath(file))
+        print("Model restores from path: " + os.path.abspath(file))

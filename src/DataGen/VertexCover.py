@@ -1,4 +1,5 @@
 import numpy as np
+import os
 
 from DataGen.DataGenBase import *
 
@@ -23,8 +24,8 @@ class VertexCover(DataGenBase):
         self.postBuildMode = "sigmoid_custom"
 
     def makeDataset(self, amount, token):
-        file = self.dataPath + self.name + "\\" + token + "RawVertexCover.csv"
-        raw = np.genfromtxt(file, delimiter=',', dtype=int)
+        file = os.path.join(os.path.abspath(__file__), os.pardir, os.pardir, os.pardir, "data", self.name, token + "RawVertexCover.csv")
+        raw = np.genfromtxt(os.path.abspath(file), delimiter=',', dtype=int)
 
         x = []
         y = []
