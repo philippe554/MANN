@@ -3,6 +3,8 @@ import time
 import mann
 import helper
 
+preCell = mann.LSTMCell("preLSTM", 20)
+
 # Define the MANN
 cell = mann.MANNUnit("L1MANN")
 cell.addMemory(mann.BasicMemory("M1", 20, 14))
@@ -28,8 +30,8 @@ TrainSteps = 100
 TestBatchSize = 100
 
 # Define optimizer
-optimizer = tf.train.RMSPropOptimizer(0.01)
-#optimizer = tf.train.AdamOptimizer()
+#optimizer = tf.train.RMSPropOptimizer(0.005, decay=0.99)
+optimizer = tf.train.AdamOptimizer()
 #ptimizer = tf.train.AdadeltaOptimizer(0.01)
 
 loadFromFile = None #"2018-05-04 15-14-33 Epoch-50 Loss-0.ckpt"
@@ -38,7 +40,10 @@ loadFromFile = None #"2018-05-04 15-14-33 Epoch-50 Loss-0.ckpt"
 
 # Build the network
 x = generator.getInput()
-y = cell.build(x, generator.outputMask, generator.outputSize)
+h = x
+#h = preCell.build(h, generator.inputLength*[1], generator.inputSize)
+h = cell.build(h, generator.outputMask, generator.outputSize)
+y = h
 _y = generator.getLabel()
 
 # Build optimizer
@@ -84,6 +89,7 @@ with tf.Session() as sess:
 
         out = helper.strfixed("#" + str(i + 1), 5) + " acc: " + helper.strfixedFloat(acc, 4, 2)
         out += " ║ Loss: " + helper.strfixedFloat(trainLoss, 7, 4) + ", " + helper.strfixedFloat(testLoss, 7, 4)
+        #out += " ║ LR: " + helper.strfixedFloat(lr, 8, 6) + " "
         out += " ║ Time: " + helper.strfixedFloat(duration, 5, 2) + "s "
         out += " ║ " + generator.process(X, Y, r)
 
