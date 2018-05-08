@@ -18,3 +18,6 @@ from RNN.FFCell import *
 from RNN.GRUCell import *
 from RNN.LSTMCell import *
 from RNN.RNNBase import *
+
+from Logging.epochLogger import *
+

@@ -36,6 +36,8 @@ optimizer = tf.train.AdamOptimizer()
 
 loadFromFile = None #"2018-05-04 15-14-33 Epoch-50 Loss-0.ckpt"
 
+logger = mann.epochLogger("<TimeStamp>")
+
 #### End of configuration ####
 
 # Build the network
@@ -94,6 +96,8 @@ with tf.Session() as sess:
         out += " ║ " + generator.process(X, Y, r)
 
         print(out)
+
+        logger.log(i, acc, trainLoss, testLoss)
 
         if i % 50 == 0 and i > 0:
             generator.save(sess, i, int(trainLoss))
