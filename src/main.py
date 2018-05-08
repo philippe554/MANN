@@ -28,6 +28,7 @@ TestSetSize = 10000
 BatchSize = 100
 TrainSteps = 100
 TestBatchSize = 100
+SaveInterval = 50
 
 # Define optimizer
 #optimizer = tf.train.RMSPropOptimizer(0.005, decay=0.99)
@@ -69,37 +70,59 @@ with tf.Session() as sess:
     else:
         sess.run(tf.global_variables_initializer())
 
-    # Get accuracy before training
-    X, Y = testData.getBatch(BatchSize)
+    X, Y = testData.getBatch(TestBatchSize)
     acc, testLoss = sess.run([accuracy, loss], feed_dict={x: X, _y: Y})
-    print("Start:" + "\tacc: " + str(acc) + "\tLoss: " + str(testLoss))
+    out = "Start network: acc: " + helper.strfixedFloat(acc, 4, 2)
+    out += ", Loss: " + helper.strfixedFloat(testLoss, 7, 4)
+    print(out)
 
+    print("Training: ")
+    avgAcc = 0
+    avgTrainLoss = 0
+    avgTrainLossHist = []
     for i in range(100000):
         # Train 1 epoch
-        trainLoss = 0
         start_time = time.time()
+        trainLoss = 0
         for j in range(TrainSteps):
             X, Y = trainData.getBatch(BatchSize)
             _, l = sess.run([trainStep, loss], feed_dict={x: X, _y: Y})
             trainLoss += l
-        duration = time.time() - start_time
+        trainTime = time.time() - start_time
         trainLoss = trainLoss / TrainSteps
+        avgTrainLoss += trainLoss
 
         # Get accuracy
         X, Y = testData.getBatch(TestBatchSize)
+        start_time = time.time()
         acc, testLoss, r = sess.run([accuracy, loss, p], feed_dict={x: X, _y: Y})
+        testTime = time.time() - start_time
+        avgAcc += acc
 
-        out = helper.strfixed("#" + str(i + 1), 5) + " acc: " + helper.strfixedFloat(acc, 4, 2)
+        out = helper.strfixed("#" + str(i), 5) + " acc: " + helper.strfixedFloat(acc, 4, 2)
         out += " ║ Loss: " + helper.strfixedFloat(trainLoss, 7, 4) + ", " + helper.strfixedFloat(testLoss, 7, 4)
-        #out += " ║ LR: " + helper.strfixedFloat(lr, 8, 6) + " "
-        out += " ║ Time: " + helper.strfixedFloat(duration, 5, 2) + "s "
+        out += " ║ Time: " + helper.strfixedFloat(trainTime, 5, 2) + "s, " + helper.strfixedFloat(testTime, 5, 2) + "s "
         out += " ║ " + generator.process(X, Y, r)
-
         print(out)
 
         logger.log(i, acc, trainLoss, testLoss)
 
-        if i % 50 == 0 and i > 0:
+        if i % SaveInterval == 0 and i > 0:
+            out = "Avg Acc: " + helper.strfixedFloat(avgAcc / SaveInterval, 5, 3)
+            out += ", Avg train loss: " + helper.strfixedFloat(avgTrainLoss / SaveInterval, 8, 5)
+            out += ", Loss History:"
+
+            avgTrainLossHist.append(avgTrainLoss / SaveInterval)
+
+            for i in range(10):
+                if i < len(avgTrainLossHist):
+                    out += " " + helper.strfixedFloat(avgTrainLossHist[-i-1], 6, 4)
+
+            print(out)
+
+            avgAcc = 0
+            avgTrainLoss = 0
+
             generator.save(sess, i, int(trainLoss))
 
 
