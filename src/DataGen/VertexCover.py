@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import pickle
 
 from DataGen.DataGenBase import *
 
@@ -24,7 +25,7 @@ class VertexCover(DataGenBase):
         self.postBuildMode = "sigmoid_custom"
 
     def makeDataset(self, amount, token):
-        file = os.path.join(os.getcwd(), os.pardir, "data", self.name, token + "RawVertexCover.csv")
+        file = os.path.join(os.getcwd(), os.pardir, "data", self.name, "RawVertexCover-" + str(amount) + "-" + str(self.nodes) + "-" + str(self.edges) + ".csv")
         raw = np.genfromtxt(os.path.abspath(file), delimiter=',', dtype=int)
 
         x = []
@@ -39,6 +40,21 @@ class VertexCover(DataGenBase):
             else:
                 c[C] = 0
         return Data(x, y, c)
+
+    def makeAndSaveDataset(self, amount, token):
+        dataPath = os.path.join(os.getcwd(), os.pardir, "data", self.name)
+
+        if not os.path.exists(dataPath):
+           os.makedirs(dataPath)
+
+        file = os.path.join(dataPath, str(token) + "-" + str(amount) + "-" + str(self.nodes) + "-" + str(self.edges)+".p")
+
+        try:
+            return pickle.load(open(os.path.abspath(file),"rb"))
+        except:
+            data = self.makeDataset(amount, token)
+            pickle.dump(data, open(os.path.abspath(file), "wb"))
+            return data
 
     def getEntry(self, row):
         E = row[1:1+self.edges*2].reshape([self.edges, 2])

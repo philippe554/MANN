@@ -12,12 +12,6 @@ import tensorflow as tf
 class DataGenBase:
     saver = None
 
-    #modelPath = os.path.dirname(os.path.abspath(__file__)) + "\\..\\..\\models\\"
-    #dataPath = os.path.dirname(os.path.abspath(__file__)) + "\\..\\..\\data\\"
-
-    #modelPath = os.path.join(os.path.abspath(__file__), os.pardir, os.pardir, "models")
-
-
     def makeDataset(self, amount, token):
         x=[]
         y=[]
@@ -51,8 +45,8 @@ class DataGenBase:
     def getInput(self):
         return tf.placeholder(tf.float32, shape=(None, self.inputLength, self.inputSize))
 
-    #def getLabel(self):
-    #    return tf.placeholder(tf.float32, shape=(None, self.outputLength, self.outputSize))
+    def getLabel(self):
+        return tf.placeholder(tf.float32, shape=(None, self.outputLength, self.outputSize))
 
     def postBuild(self, _y, y, optimizer):
         if self.postBuildMode == "softmax":
