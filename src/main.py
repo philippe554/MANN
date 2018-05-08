@@ -20,7 +20,7 @@ cell.addHead(mann.DNCHead("Head1", 2))
 # Define the test data
 # generator = mann.MinPath(7, 10, 4, 8)
 # generator = mann.Copy(10,8)
-generator = mann.VertexCover(7, 10, 4, 30)
+generator = mann.VertexCover(7, 10, 4, 40)
 
 # Define constants
 TrainSetSize = 100000
