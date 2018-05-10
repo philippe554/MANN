@@ -37,7 +37,7 @@ optimizer = tf.train.AdamOptimizer()
 
 loadFromFile = None #"2018-05-04 15-14-33 Epoch-50 Loss-0.ckpt"
 
-logger = mann.epochLogger("<TimeStamp>")
+logger = mann.epochLogger("<TimeStamp>.csv")
 
 #### End of configuration ####
 
