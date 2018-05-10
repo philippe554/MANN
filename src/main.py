@@ -114,7 +114,7 @@ with tf.Session() as sess:
 
             avgTrainLossHist.append(avgTrainLoss / SaveInterval)
 
-            for i in range(10):
+            for i in range(25):
                 if i < len(avgTrainLossHist):
                     out += " " + helper.strfixedFloat(avgTrainLossHist[-i-1], 6, 4)
 
