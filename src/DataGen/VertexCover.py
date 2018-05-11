@@ -47,7 +47,7 @@ class VertexCover(DataGenBase):
         if not os.path.exists(dataPath):
            os.makedirs(dataPath)
 
-        file = os.path.join(dataPath, str(token) + "-" + str(amount) + "-" + str(self.nodes) + "-" + str(self.edges)+".p")
+        file = os.path.join(dataPath, str(token) + "-" + str(amount) + "-" + str(self.nodes) + "-" + str(self.edges) + "-" + str(self.thinkTime) + ".p")
 
         try:
             return pickle.load(open(os.path.abspath(file),"rb"))
