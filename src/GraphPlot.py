@@ -19,7 +19,7 @@ if __name__ == "__main__":
     from string import ascii_lowercase
 
     while True:
-        N, E = genGraph(6, 6)
+        N, E = genGraph(13, 22)
 
         G = nx.Graph()
         G.add_nodes_from(N)
