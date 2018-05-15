@@ -104,7 +104,7 @@ class DNCHead(HeadBase):
         assert helper.check(_p, [self.memory.length], self.batchSize)
         assert helper.check(w, [self.memory.length], self.batchSize)
 
-        p = (1 - tf.reduce_sum(w, axis=-1, keep_dims=True))*_p + w
+        p = (1 - tf.reduce_sum(w, axis=-1, keepdims=True))*_p + w
         assert helper.check(p, [self.memory.length], self.batchSize)
 
         return p

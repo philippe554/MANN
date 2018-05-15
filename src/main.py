@@ -37,12 +37,12 @@ logger = mann.epochLogger("<TimeStamp>.csv")
 
 # Build the network
 x = generator.getInput()
-h = x
-h = mann.FFCell("pre1", 30, tf.sigmoid).buildNoUnroll(h)
-h = mann.LSTMCell("pre1", 30).build(h)
+h = tf.unstack(x, x.get_shape()[-2], -2)
+h = mann.FFCell("pre1", 30, tf.sigmoid).build(h)
+#h = mann.LSTMCell("pre2", 30, tf.sigmoid).build(h)
 h = cell.build(h, generator.outputMask)
-h = mann.FFCell("post1", generator.outputSize, None).buildNoUnroll(h)
-y = h
+h = mann.FFCell("post1", generator.outputSize, None).build(h)
+y = tf.stack(h, -2)
 _y = generator.getLabel()
 
 # Build optimizer

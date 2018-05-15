@@ -24,25 +24,25 @@ class RNNBase:
         '''
             Builds the unit.
             outputMask: array (of size of the amount of time steps and consisting of 0 and 1). If 1, output is of that time step is returned
-            outputSize: if not None, do a linear map to that dimention
         '''
+
+        if isinstance(x, (list,)):
+            input = x
+        else:
+            input = tf.unstack(x, x.get_shape()[-2], -2)
 
         output = []
 
-        #TODO: Check if unrolling can be optimized using unstack and stack
+        for i in range(len(input)):
+            helper.progress(i + 1, len(input), status="Building RNN")
 
-        #Loop over all the timesteps
-        for i in range(0,x.get_shape()[-2]):
-            #print("Building step: "+str(i+1))
-            helper.progress(i+1, int(x.get_shape()[-2]), status="Building RNN")
+            O = self.buildTimeLayer(input[i], bool(i == 0))
 
-            #Get slice of input, and build network for this time step
-            input = tf.squeeze(tf.slice(x, [0,i,0], [-1,1,-1]),[1])
-            O = self.buildTimeLayer(input, bool(i==0))
-        
-            #Process output as defined by parameters
-            if outputMask == None or outputMask[i]==1:
-                output.append(tf.expand_dims(O, -2))
-                
-        #Return concated output of all time steps
-        return tf.concat(output, axis=-2)
+            if outputMask == None or outputMask[i] == 1:
+                output.append(O)
+
+        if isinstance(x, (list,)):
+            return output
+        else:
+            return tf.stack(output, -2)
+
