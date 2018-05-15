@@ -31,7 +31,7 @@ optimizer = tf.train.RMSPropOptimizer(0.001, decay=0.98)
 
 loadFromFile = None
 
-logger = mann.epochLogger("<TimeStamp>.csv")
+logger = mann.epochLogger("<TimeStamp>.csv", generator.getProcessNames())
 
 #### End of configuration ####
 
@@ -95,13 +95,15 @@ with tf.Session() as sess:
         testTime = time.time() - start_time
         avgAcc += acc
 
+        strProcess, listProcess = generator.process(X, Y, r)
+
         out = helper.strfixed("#" + str(i), 5) + " acc: " + helper.strfixedFloat(acc, 4, 2)
         out += " ║ Loss: " + helper.strfixedFloat(trainLoss, 7, 4) + ", " + helper.strfixedFloat(testLoss, 7, 4)
         out += " ║ Time: " + helper.strfixedFloat(trainTime, 5, 2) + "s, " + helper.strfixedFloat(testTime, 5, 2) + "s "
-        out += " ║ " + generator.process(X, Y, r)
+        out += " ║ " + strProcess
         print(out)
 
-        logger.log(i, acc, trainLoss, testLoss)
+        logger.log(i, acc, trainLoss, testLoss, listProcess)
 
         if i % SaveInterval == 0 and i > 0:
             out = "Avg Acc: " + helper.strfixedFloat(avgAcc / SaveInterval, 5, 3)
