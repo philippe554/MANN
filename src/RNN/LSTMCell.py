@@ -6,9 +6,10 @@ import helper
 from RNN.RNNBase import *
 
 class LSTMCell(RNNBase):
-    def __init__(self, name, stateSize):
+    def __init__(self, name, stateSize, AF=tf.tanh):
         super().__init__(name)
         self.stateSize = stateSize
+        self.AF = AF
 
     def buildTimeLayer(self, input, first=False):
         with tf.variable_scope(self.name):
@@ -29,5 +30,5 @@ class LSTMCell(RNNBase):
             update = tf.tanh(helper.map("update", cc, self.stateSize))           
 
             self.prevState = (self.prevState * forgetGate) + (saveGate * update)
-            self.prevOutput = outputGate * tf.tanh(self.prevState)
+            self.prevOutput = outputGate * self.AF(self.prevState)
             return self.prevOutput

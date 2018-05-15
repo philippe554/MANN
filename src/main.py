@@ -3,24 +3,18 @@ import time
 import mann
 import helper
 
-preCell = mann.LSTMCell("preLSTM", 20)
-
-# Define the MANN
-cell = mann.MANNUnit("L1MANN")
-cell.addMemory(mann.BasicMemory("M1", 20, 14))
-#cell.addController(mann.GRUCell("Controller1", 32))
-cell.addController(mann.LSTMCell("LSTM", 40))
-#cell.addController(mann.FFCell("FF1", 40))
-#cell.addController(mann.FFCell("FF2", 40))
-cell.addHead(mann.DNCHead("Head1", 2))
-#cell.addHead(mann.NTMHead("Head1"))
-
-#cell = mann.LSTMCell("LSTM1", 40)
-
 # Define the test data
 # generator = mann.MinPath(7, 10, 4, 8)
 # generator = mann.Copy(10,8)
 generator = mann.VertexCover(7, 10, 4, 75)
+
+# Define the MANN
+cell = mann.MANNUnit("L1MANN")
+cell.addMemory(mann.BasicMemory("M1", 30, 16))
+cell.addController(mann.LSTMCell("LSTM", 50))
+cell.addHead(mann.DNCHead("Head1", 2))
+
+#cell = mann.LSTMCell("LSTM1", 40)
 
 # Define constants
 TrainSetSize = 100000
@@ -31,11 +25,11 @@ TestBatchSize = 100
 SaveInterval = 50
 
 # Define optimizer
-#optimizer = tf.train.RMSPropOptimizer(0.005, decay=0.99)
-optimizer = tf.train.AdamOptimizer()
+optimizer = tf.train.RMSPropOptimizer(0.001, decay=0.98)
+#optimizer = tf.train.AdamOptimizer()
 #ptimizer = tf.train.AdadeltaOptimizer(0.01)
 
-loadFromFile = None #"2018-05-04 15-14-33 Epoch-50 Loss-0.ckpt"
+loadFromFile = None
 
 logger = mann.epochLogger("<TimeStamp>.csv")
 
@@ -44,8 +38,10 @@ logger = mann.epochLogger("<TimeStamp>.csv")
 # Build the network
 x = generator.getInput()
 h = x
-#h = preCell.build(h, generator.inputLength*[1], generator.inputSize)
-h = cell.build(h, generator.outputMask, generator.outputSize)
+h = mann.FFCell("pre1", 30, tf.sigmoid).buildNoUnroll(h)
+h = mann.LSTMCell("pre1", 30).build(h)
+h = cell.build(h, generator.outputMask)
+h = mann.FFCell("post1", generator.outputSize, None).buildNoUnroll(h)
 y = h
 _y = generator.getLabel()
 

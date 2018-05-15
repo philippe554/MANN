@@ -69,7 +69,7 @@ class HeadBase:
         assert helper.check(b, [1], self.batchSize)
 
         dot = tf.squeeze(tf.matmul(self.memory.M[-1], tf.expand_dims(k, axis=-1)), axis=-1)
-        l1 = tf.sqrt(tf.reduce_sum(tf.pow(k, 2), axis=-1, keep_dims=True))
+        l1 = tf.sqrt(tf.reduce_sum(tf.pow(k, 2), axis=-1, keepdims=True))
         l2 = tf.sqrt(tf.reduce_sum(tf.pow(self.memory.M[-1], 2), axis=-1))
         cosSim = tf.divide(dot, l1 * l2 + 0.001)
 
@@ -91,7 +91,7 @@ class HeadBase:
         dot = tf.matmul(self.memory.M[-1], k, transpose_b=True)
         assert helper.check(dot, [self.memory.length, extra], self.batchSize)
 
-        l1 = tf.sqrt(tf.reduce_sum(tf.pow(k, 2), axis=-1, keep_dims=True))
+        l1 = tf.sqrt(tf.reduce_sum(tf.pow(k, 2), axis=-1, keepdims=True))
         l2 = tf.expand_dims(tf.sqrt(tf.reduce_sum(tf.pow(self.memory.M[-1], 2), axis=-1)), axis=-2)
         cosSim = tf.divide(tf.transpose(dot, perm=[0,2,1]), tf.matmul(l1, l2) + 0.001)
         assert helper.check(cosSim, [extra, self.memory.length], self.batchSize)

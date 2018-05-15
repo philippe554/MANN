@@ -20,7 +20,7 @@ class RNNBase:
     def __init__(self, name):
         self.name = name;
 
-    def build(self, x, outputMask=None, outputSize=None):
+    def build(self, x, outputMask=None):
         '''
             Builds the unit.
             outputMask: array (of size of the amount of time steps and consisting of 0 and 1). If 1, output is of that time step is returned
@@ -41,10 +41,7 @@ class RNNBase:
             O = self.buildTimeLayer(input, bool(i==0))
         
             #Process output as defined by parameters
-            if(outputMask[i]==1):
-                if(outputSize is not None):
-                    with tf.variable_scope(self.name):
-                        O = helper.map("outputMap", O, outputSize)
+            if outputMask == None or outputMask[i]==1:
                 output.append(tf.expand_dims(O, -2))
                 
         #Return concated output of all time steps
