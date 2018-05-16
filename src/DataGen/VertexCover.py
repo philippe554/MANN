@@ -187,8 +187,8 @@ class VertexCover(DataGenBase):
         out += " ║ Size found: " + helper.strfixed(coverSizeFound, 3)
         out += " ║ Uncovered dist.: " + str(noCover)
 
-        return out, [totalOptimal, subOptimal, coverSizeFound]
+        return out, [Y.shape[0], totalOptimal, subOptimal, coverSizeFound]
 
     def getProcessNames(self):
-        return ["Optimal", "Suboptimal", "SizeFound"]
+        return ["Total", "Optimal", "Suboptimal", "SizeFound"]
 
