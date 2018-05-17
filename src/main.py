@@ -6,7 +6,7 @@ import helper
 # Define the test data
 # generator = mann.MinPath(7, 10, 4, 8)
 # generator = mann.Copy(10,8)
-generator = mann.VertexCover(7, 10, 4, 75)
+generator = mann.VertexCover(9, 14, 4, 75)
 
 # Define the MANN
 cell = mann.MANNUnit("L1MANN")
@@ -38,10 +38,10 @@ logger = mann.epochLogger("<TimeStamp>.csv", generator.getProcessNames())
 # Build the network
 x = generator.getInput()
 h = tf.unstack(x, x.get_shape()[-2], -2)
-h = mann.FFCell("pre1", 10, tf.sigmoid).build(h)
-h = mann.LSTMCell("pre2", 30, tf.sigmoid).build(h)
-h = mann.FFCell("pre2", 30, tf.sigmoid).build(h)
-h = mann.FFCell("pre3", 30, tf.sigmoid).build(h)
+h = mann.FFCell("pre1", 30, tf.sigmoid).build(h)
+#h = mann.LSTMCell("pre2", 30, tf.sigmoid).build(h)
+#h = mann.FFCell("pre3", 30, tf.sigmoid).build(h)
+#h = mann.FFCell("pre4", 30, tf.sigmoid).build(h)
 h = cell.build(h, generator.outputMask)
 h = mann.FFCell("post1", generator.outputSize, None).build(h)
 y = tf.stack(h, -2)
