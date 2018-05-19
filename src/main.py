@@ -6,20 +6,20 @@ import helper
 # Define the test data
 # generator = mann.MinPath(7, 10, 4, 8)
 # generator = mann.Copy(10,8)
-generator = mann.VertexCover(9, 14, 4, 75)
+generator = mann.VertexCover(9, 14, 6, 75)
 
 # Define the MANN
 cell = mann.MANNUnit("L1MANN")
 cell.addMemory(mann.BasicMemory("M1", 30, 16))
-cell.addController(mann.LSTMCell("LSTM", 50))
-cell.addHead(mann.DNCHead("Head1", 2))
+cell.addController(mann.LSTMCell("LSTM", 80))
+cell.addHead(mann.DNCHead("Head1", 8))
 
 #cell = mann.LSTMCell("LSTM1", 40)
 
 # Define constants
 TrainSetSize = 100000
 TestSetSize = 10000
-BatchSize = 100
+BatchSize = 256
 TrainSteps = 100
 TestBatchSize = 100
 SaveInterval = 50
