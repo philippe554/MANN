@@ -11,8 +11,10 @@ generator = mann.VertexCover(9, 14, 6, 75)
 # Define the MANN
 cell = mann.MANNUnit("L1MANN")
 cell.addMemory(mann.BasicMemory("M1", 30, 16))
-cell.addController(mann.LSTMCell("LSTM", 80))
-cell.addHead(mann.DNCHead("Head1", 8))
+cell.addController(mann.FFCell("C1", 50))
+cell.addController(mann.FFCell("C2", 50))
+cell.addController(mann.LSTMCell("C_LSTM", 50))
+cell.addHead(mann.DNCHead("Head1", 4))
 
 #cell = mann.LSTMCell("LSTM1", 40)
 
@@ -38,7 +40,7 @@ logger = mann.epochLogger("<TimeStamp>.csv", generator.getProcessNames())
 # Build the network
 x = generator.getInput()
 h = tf.unstack(x, x.get_shape()[-2], -2)
-h = mann.FFCell("pre1", 30, tf.sigmoid).build(h)
+#h = mann.FFCell("pre1", 30, tf.sigmoid).build(h)
 #h = mann.LSTMCell("pre2", 30, tf.sigmoid).build(h)
 #h = mann.FFCell("pre3", 30, tf.sigmoid).build(h)
 #h = mann.FFCell("pre4", 30, tf.sigmoid).build(h)
