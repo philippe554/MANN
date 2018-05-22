@@ -27,8 +27,8 @@ TestBatchSize = 100
 SaveInterval = 50
 
 # Define optimizer
-#optimizer = tf.train.RMSPropOptimizer(0.001, decay=0.98)
-optimizer = tf.train.AdamOptimizer()
+optimizer = tf.train.RMSPropOptimizer(0.001, decay=0.98, momentum=0.9)
+#optimizer = tf.train.AdamOptimizer()
 #ptimizer = tf.train.AdadeltaOptimizer(0.01)
 
 loadFromFile = None
