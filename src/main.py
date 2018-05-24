@@ -9,12 +9,15 @@ import helper
 generator = mann.VertexCover(9, 14, 6, 75)
 
 # Define the MANN
-cell = mann.MANNUnit("L1MANN")
-cell.addMemory(mann.BasicMemory("M1", 30, 16))
-cell.addController(mann.FFCell("C1", 50))
-cell.addController(mann.FFCell("C2", 50))
-cell.addController(mann.LSTMCell("C_LSTM", 50))
-cell.addHead(mann.DNCHead("Head1", 4))
+cell1 = mann.MANNUnit("L1MANN")
+cell1.addMemory(mann.BasicMemory("M1", 30, 16))
+cell1.addController(mann.LSTMCell("C_LSTM", 40))
+cell1.addHead(mann.DNCHead("Head1", 2))
+
+cell2 = mann.MANNUnit("L2MANN")
+cell2.addMemory(mann.BasicMemory("M1", 30, 16))
+cell2.addController(mann.LSTMCell("C_LSTM", 40))
+cell2.addHead(mann.DNCHead("Head1", 2))
 
 #cell = mann.LSTMCell("LSTM1", 40)
 
@@ -27,8 +30,8 @@ TestBatchSize = 100
 SaveInterval = 50
 
 # Define optimizer
-optimizer = tf.train.RMSPropOptimizer(0.001, decay=0.98, momentum=0.9)
-#optimizer = tf.train.AdamOptimizer()
+#optimizer = tf.train.RMSPropOptimizer(0.001, decay=0.98, momentum=0.9)
+optimizer = tf.train.AdamOptimizer()
 #ptimizer = tf.train.AdadeltaOptimizer(0.01)
 
 loadFromFile = None
@@ -40,12 +43,11 @@ logger = mann.epochLogger("<TimeStamp>.csv", generator.getProcessNames())
 # Build the network
 x = generator.getInput()
 h = tf.unstack(x, x.get_shape()[-2], -2)
-#h = mann.FFCell("pre1", 30, tf.sigmoid).build(h)
-#h = mann.LSTMCell("pre2", 30, tf.sigmoid).build(h)
-#h = mann.FFCell("pre3", 30, tf.sigmoid).build(h)
-#h = mann.FFCell("pre4", 30, tf.sigmoid).build(h)
-h = cell.build(h, generator.outputMask)
-h = mann.FFCell("post1", generator.outputSize, None).build(h)
+h = mann.FFCell("pre", 20, tf.sigmoid).build(h)
+h = cell1.build(h)
+h = mann.FFCell("mid", 40, tf.sigmoid).build(h)
+h = cell2.build(h, generator.outputMask)
+h = mann.FFCell("post", generator.outputSize, None).build(h)
 y = tf.stack(h, -2)
 _y = generator.getLabel()
 
