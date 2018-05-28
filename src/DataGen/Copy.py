@@ -29,3 +29,9 @@ class Copy(DataGenBase):
         y = data
 
         return x,y,0
+
+    def process(self, X, Y, R):
+        return "", []
+
+    def getProcessNames(self):
+        return ""

@@ -5,26 +5,21 @@ import helper
 
 # Define the test data
 # generator = mann.MinPath(7, 10, 4, 8)
-# generator = mann.Copy(10,8)
-generator = mann.VertexCover(9, 14, 6, 75)
+generator = mann.Copy(12,8)
+# generator = mann.VertexCover(9, 14, 6, 75)
 
 # Define the MANN
-cell1 = mann.MANNUnit("L1MANN")
-cell1.addMemory(mann.BasicMemory("M1", 30, 16))
-cell1.addController(mann.LSTMCell("C_LSTM", 40))
-cell1.addHead(mann.DNCHead("Head1", 2))
-
-cell2 = mann.MANNUnit("L2MANN")
-cell2.addMemory(mann.BasicMemory("M1", 30, 16))
-cell2.addController(mann.LSTMCell("C_LSTM", 40))
-cell2.addHead(mann.DNCHead("Head1", 2))
+cell = mann.MANNUnit("L1MANN")
+cell.addMemory(mann.BasicMemory("M1", 30, 16))
+cell.addController(mann.LSTMCell("C_LSTM", 40))
+cell.addHead(mann.DNCHead("Head1", 2))
 
 #cell = mann.LSTMCell("LSTM1", 40)
 
 # Define constants
 TrainSetSize = 100000
 TestSetSize = 10000
-BatchSize = 256
+BatchSize = 128
 TrainSteps = 100
 TestBatchSize = 100
 SaveInterval = 50
@@ -43,10 +38,8 @@ logger = mann.epochLogger("<TimeStamp>.csv", generator.getProcessNames())
 # Build the network
 x = generator.getInput()
 h = tf.unstack(x, x.get_shape()[-2], -2)
-h = mann.FFCell("pre", 20, tf.sigmoid).build(h)
-h = cell1.build(h)
-h = mann.FFCell("mid", 40, tf.sigmoid).build(h)
-h = cell2.build(h, generator.outputMask)
+#h = mann.FFCell("pre", 20, tf.sigmoid).build(h)
+h = cell.build(h, generator.outputMask)
 h = mann.FFCell("post", generator.outputSize, None).build(h)
 y = tf.stack(h, -2)
 _y = generator.getLabel()
