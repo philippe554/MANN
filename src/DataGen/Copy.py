@@ -30,6 +30,21 @@ class Copy(DataGenBase):
 
         return x,y,0
 
+    def makeAndSaveDataset(self, amount, token):
+        dataPath = os.path.join(os.getcwd(), os.pardir, "data", self.name)
+
+        if not os.path.exists(dataPath):
+           os.makedirs(dataPath)
+
+        file = os.path.join(dataPath, str(token) + "-" + str(amount) + "-" + str(self.length) + "-" + str(self.size) + ".p")
+
+        try:
+            return pickle.load(open(os.path.abspath(file),"rb"))
+        except:
+            data = self.makeDataset(amount, token)
+            pickle.dump(data, open(os.path.abspath(file), "wb"))
+            return data
+
     def process(self, X, Y, R):
         return "", []
 

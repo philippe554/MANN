@@ -10,9 +10,9 @@ generator = mann.Copy(12,8)
 
 # Define the MANN
 cell = mann.MANNUnit("L1MANN")
-cell.addMemory(mann.BasicMemory("M1", 30, 16))
-cell.addController(mann.LSTMCell("C_LSTM", 40))
-cell.addHead(mann.DNCHead("Head1", 2))
+cell.addMemory(mann.BasicMemory("M1", 30, 16, profile = "Trainable"))
+cell.addController(mann.FFCell("C_ff", 30))
+cell.addHead(mann.NTMHead("Head1", 1))
 
 #cell = mann.LSTMCell("LSTM1", 40)
 
