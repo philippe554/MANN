@@ -45,12 +45,12 @@ class VertexCover(DataGenBase):
         dataPath = os.path.join(os.getcwd(), os.pardir, "data", self.name)
 
         if not os.path.exists(dataPath):
-           os.makedirs(dataPath)
+            os.makedirs(dataPath)
 
         file = os.path.join(dataPath, str(token) + "-" + str(amount) + "-" + str(self.nodes) + "-" + str(self.edges) + "-" + str(self.thinkTime) + ".p")
 
         try:
-            return pickle.load(open(os.path.abspath(file),"rb"))
+            return pickle.load(open(os.path.abspath(file), "rb"))
         except:
             data = self.makeDataset(amount, token)
             pickle.dump(data, open(os.path.abspath(file), "wb"))
@@ -114,30 +114,23 @@ class VertexCover(DataGenBase):
         return trainStep, p, accuracy, loss
 
     def getCoveredSet(self, g, c):
-        covered = np.zeros([self.nodes], dtype=np.int)
+        covered = np.zeros([self.edges], dtype=np.int)
 
-        for i in range(self.nodes):
-            if c[i] == 1:
+        for i in range(self.edges):
+            if c[g[i, 0]] == 1 or c[g[i, 1]] == 1:
                 covered[i] = 1
-
-                for j in range(self.edges):
-                    if g[j, 0] == i:
-                        covered[g[j, 1]] = 1
-
-                    if g[j, 1] == i:
-                        covered[g[j, 0]] = 1
 
         return covered
 
     def getAmountUncovered(self, g, c):
         covered = self.getCoveredSet(g, c)
 
-        return self.nodes - np.sum(covered)
+        return self.edges - np.sum(covered)
 
     def isVertexCover(self, g, c):
         covered = self.getCoveredSet(g, c)
 
-        return np.sum(covered) == self.nodes
+        return np.sum(covered) == self.edges
 
     def convertToGraph(self, x):
         x = x[0:self.edges, 0:self.nodes]
@@ -154,7 +147,7 @@ class VertexCover(DataGenBase):
 
         totalOptimal = 0
         subOptimal = 0
-        noCover = np.zeros([self.nodes+1], dtype=np.int)
+        noCover = np.zeros([self.edges+1], dtype=np.int)
         coverSizeFound = 0
 
 

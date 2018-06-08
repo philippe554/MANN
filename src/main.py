@@ -5,14 +5,14 @@ import helper
 
 # Define the test data
 # generator = mann.MinPath(7, 10, 4, 8)
-generator = mann.Copy(12,8)
-# generator = mann.VertexCover(9, 14, 6, 75)
+#generator = mann.Copy(10,8)
+generator = mann.VertexCover(7, 10, 6, 75)
 
 # Define the MANN
 cell = mann.MANNUnit("L1MANN")
-cell.addMemory(mann.BasicMemory("M1", 30, 16, profile = "Trainable"))
-cell.addController(mann.FFCell("C_ff", 30))
-cell.addHead(mann.NTMHead("Head1", 1))
+cell.addMemory(mann.BasicMemory("M1", 30, 16))
+cell.addController(mann.LSTMCell("C", 50))
+cell.addHead(mann.DNCHead("Head1", 2))
 
 #cell = mann.LSTMCell("LSTM1", 40)
 
@@ -54,9 +54,6 @@ helper.printStats(tf.trainable_variables())
 trainData = generator.makeAndSaveDataset(TrainSetSize, "train")
 testData = generator.makeAndSaveDataset(TestSetSize, "test")
 print("Data ready")
-
-# Print class distribution
-print("Class distribution:", trainData.C)
 
 # Train network
 with tf.Session() as sess:

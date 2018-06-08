@@ -26,7 +26,7 @@ class DNCHead(HeadBase):
         self.u = self.getU(f, self.u, self.wWriteList[-1], self.wReadList[-1])
         a = self.getA(self.u)
 
-        kW = o2
+        kW = tf.nn.softplus(o2)
         bW = tf.nn.softplus(o3) + 1
         c = self.getCosSimSoftMax(kW, bW)
 
@@ -53,7 +53,7 @@ class DNCHead(HeadBase):
         assert helper.check(f, [self.amountReadHeads, self.memory.length], self.batchSize)
         assert helper.check(b, [self.amountReadHeads, self.memory.length], self.batchSize)
 
-        kR = tf.reshape(o1, [-1, self.amountReadHeads, self.memory.bitDepth])
+        kR = tf.nn.softplus(tf.reshape(o1, [-1, self.amountReadHeads, self.memory.bitDepth]))
         bR = tf.nn.softplus(o2) + 1
         c = self.getCosSimSoftMaxExtra(kR, bR, self.amountReadHeads)
 
