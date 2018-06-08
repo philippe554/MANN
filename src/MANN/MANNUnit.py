@@ -11,6 +11,7 @@ class MANNUnit(RNNBase):
         self.controllers = []
         self.heads = []
         self.memory = None
+        self.readPeepHole = False
 
     def buildTimeLayer(self, input, first=False):
         with tf.variable_scope(self.name):
@@ -18,7 +19,7 @@ class MANNUnit(RNNBase):
                 self.setup(input)
 
             prevReads = [head.readList[-1] for head in self.heads]
-            O = tf.concat([input]+prevReads, axis=-1)
+            O = tf.concat([input] + prevReads, axis=-1)
 
             for controller in self.controllers:
                 O = controller.buildTimeLayer(O, first)
@@ -33,7 +34,11 @@ class MANNUnit(RNNBase):
             for head in self.heads:
                 head.buildReadHead(O)
 
-            return O
+            if self.readPeepHole:
+                prevReads = [head.readList[-1] for head in self.heads]
+                return tf.concat([O] + prevReads, axis=-1)
+            else:
+                return O
 
     def setup(self, firstInput):
         if self.memory is None:
@@ -57,3 +62,6 @@ class MANNUnit(RNNBase):
 
     def addHead(self, head):
         self.heads.append(head)
+
+    def setReadPeepHole(self, b=True):
+        self.readPeepHole = b

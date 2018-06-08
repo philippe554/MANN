@@ -22,9 +22,9 @@ class NTMHead(HeadBase):
         assert helper.check(w_, [self.memory.length], self.batchSize)
 
         k = tf.nn.softplus(helper.map("map_k", O, self.memory.bitDepth))
-        b = tf.nn.softplus(helper.map("map_b", O, 1))
+        b = tf.nn.softplus(helper.map("map_b", O, 1)) + 1
         g = tf.sigmoid(helper.map("map_g", O, 1))
-        s = tf.nn.softmax(tf.sigmoid(helper.map("map_s", O, 5))) #Added sigmoid
+        s = tf.nn.softmax(helper.map("map_s", O, 5))
         y = tf.nn.softplus(helper.map("map_y", O, 1)) + 1
 
         wc = self.getCosSimSoftMax(k, b)

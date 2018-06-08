@@ -13,6 +13,7 @@ cell = mann.MANNUnit("L1MANN")
 cell.addMemory(mann.BasicMemory("M1", 30, 16))
 cell.addController(mann.LSTMCell("C", 50))
 cell.addHead(mann.DNCHead("Head1", 2))
+#cell.setReadPeepHole()
 
 #cell = mann.LSTMCell("LSTM1", 40)
 
