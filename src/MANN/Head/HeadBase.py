@@ -19,6 +19,9 @@ class HeadBase:
         self.amountReadHeads = amountReadHeads
         self.cosSimMask = False
 
+    def setCosSimMask(self, b):
+        self.cosSimMask = b
+
     def setup(self, batchSize, memory):
         '''
             Setup all start variables of this head, can not be called in the __init__ functiom because batch size is still unknown

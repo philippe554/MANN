@@ -10,11 +10,14 @@ generator = mann.VertexCover(9, 14, 6, 25)
 
 # Define the MANN
 cell = mann.MANNUnit("L1MANN")
-cell.addMemory(mann.BasicMemory("M1", 30, 16))
-cell.addController(mann.LSTMCell("C", 60))
 
-head1 = mann.DNCHead("Head1", 3)
-head1.setCosSimMask(True)
+cell.addMemory(mann.BasicMemory("M1", 30, 16))
+
+cell.addController(mann.LSTMCell("C", 60))
+#cell.setReadPeepHole(True)
+
+head1 = mann.NTMHead("Head1")
+#head1.setCosSimMask(True)
 
 cell.addHead(head1)
 #cell.setReadPeepHole()
@@ -22,7 +25,7 @@ cell.addHead(head1)
 #cell = mann.LSTMCell("LSTM1", 40)
 
 # Define constants
-TrainSetSize = 1000000
+TrainSetSize = 100000
 TestSetSize = 10000
 BatchSize = 128
 TrainSteps = 100

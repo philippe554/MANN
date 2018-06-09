@@ -27,6 +27,12 @@ class NTMHead(HeadBase):
         s = tf.nn.softmax(helper.map("map_s", O, 5))
         y = tf.nn.softplus(helper.map("map_y", O, 1)) + 1
 
+        if self.cosSimMask:
+            mask = tf.sigmoid(helper.map("map_y_mask", O, self.memory.bitDepth))
+            wc = self.getCosSimSoftMax(k, b, mask)
+        else:
+            wc = self.getCosSimSoftMax(k, b)
+
         wc = self.getCosSimSoftMax(k, b)
         wg = self.getWg(wc, g, w_)
         wm = self.getWmFast(wg, s)

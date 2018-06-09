@@ -141,6 +141,3 @@ class DNCHead(HeadBase):
         assert helper.check(l, [self.memory.length, self.memory.length], self.batchSize)
 
         return l
-
-    def setCosSimMask(self, b):
-        self.cosSimMask = b
