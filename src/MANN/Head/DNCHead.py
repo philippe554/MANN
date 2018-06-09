@@ -28,7 +28,11 @@ class DNCHead(HeadBase):
 
         kW = tf.nn.softplus(o2)
         bW = tf.nn.softplus(o3) + 1
-        c = self.getCosSimSoftMax(kW, bW)
+        if self.cosSimMask:
+            mask = tf.sigmoid(helper.map("map_ww_mask", O, self.memory.bitDepth))
+            c = self.getCosSimSoftMax(kW, bW, mask)
+        else:
+            c = self.getCosSimSoftMax(kW, bW)
 
         gw = tf.sigmoid(o4)
         ga = tf.sigmoid(o5)
@@ -56,6 +60,12 @@ class DNCHead(HeadBase):
         kR = tf.nn.softplus(tf.reshape(o1, [-1, self.amountReadHeads, self.memory.bitDepth]))
         bR = tf.nn.softplus(o2) + 1
         c = self.getCosSimSoftMaxExtra(kR, bR, self.amountReadHeads)
+
+        if self.cosSimMask:
+            mask = tf.reshape(tf.sigmoid(helper.map("map_wr_mask", O, self.amountReadHeads * self.memory.bitDepth)), [-1, self.amountReadHeads, self.memory.bitDepth])
+            c = self.getCosSimSoftMaxExtraMasked(kR, bR, self.amountReadHeads, mask)
+        else:
+            c = self.getCosSimSoftMaxExtra(kR, bR, self.amountReadHeads)
 
         pi = tf.nn.softmax(tf.reshape(o3, [-1, self.amountReadHeads, 3]))
         w = tf.expand_dims(pi[:, :, 0], axis=-1)*b + tf.expand_dims(pi[:, :, 1], axis=-1)*c + tf.expand_dims(pi[:, :, 2], axis=-1)*f
@@ -131,3 +141,6 @@ class DNCHead(HeadBase):
         assert helper.check(l, [self.memory.length, self.memory.length], self.batchSize)
 
         return l
+
+    def setCosSimMask(self, b):
+        self.cosSimMask = b

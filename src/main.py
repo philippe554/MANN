@@ -12,7 +12,11 @@ generator = mann.VertexCover(7, 10, 6, 75)
 cell = mann.MANNUnit("L1MANN")
 cell.addMemory(mann.BasicMemory("M1", 30, 16))
 cell.addController(mann.LSTMCell("C", 50))
-cell.addHead(mann.DNCHead("Head1", 2))
+
+head1 = mann.DNCHead("Head1", 2)
+head1.setCosSimMask(True)
+
+cell.addHead(head1)
 #cell.setReadPeepHole()
 
 #cell = mann.LSTMCell("LSTM1", 40)
