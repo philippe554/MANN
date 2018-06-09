@@ -26,19 +26,18 @@ class VertexCover(DataGenBase):
 
     def makeDataset(self, amount, token):
         file = os.path.join(os.getcwd(), os.pardir, "data", self.name, "RawVertexCover-" + str(amount) + "-" + str(self.nodes) + "-" + str(self.edges) + ".csv")
-        raw = np.genfromtxt(os.path.abspath(file), delimiter=',', dtype=int)
 
-        x = []
-        y = []
-        c = {}
-        for i in range(min(raw.shape[0], amount)):
-            X, Y, C = self.getEntry(raw[i, :])
-            x.append(X)
-            y.append(Y)
-            if C in c:
-                c[C] += 1
-            else:
-                c[C] = 0
+        with open(os.path.abspath(file)) as f:
+            for row in f:
+                r = np.fromstring(row, dtype=int, sep=',')
+                X, Y, C = self.getEntry(r)
+                x.append(X)
+                y.append(Y)
+                if C in c:
+                    c[C] += 1
+                else:
+                    c[C] = 0
+
         return Data(x, y, c)
 
     def makeAndSaveDataset(self, amount, token):
@@ -49,12 +48,12 @@ class VertexCover(DataGenBase):
 
         file = os.path.join(dataPath, str(token) + "-" + str(amount) + "-" + str(self.nodes) + "-" + str(self.edges) + "-" + str(self.thinkTime) + ".p")
 
-        try:
-            return pickle.load(open(os.path.abspath(file), "rb"))
-        except:
-            data = self.makeDataset(amount, token)
-            pickle.dump(data, open(os.path.abspath(file), "wb"))
-            return data
+        #try:
+        #    return pickle.load(open(os.path.abspath(file), "rb"))
+        #except:
+        data = self.makeDataset(amount, token)
+        #    pickle.dump(data, open(os.path.abspath(file), "wb"))
+        return data
 
     def getEntry(self, row):
         E = row[1:1+self.edges*2].reshape([self.edges, 2])
@@ -72,7 +71,7 @@ class VertexCover(DataGenBase):
 
         X = np.concatenate([X1, X2, X3], axis=-2)
 
-        Y = row[1 + 2*self.edges + 1:].reshape([self.possibleRightAnswer, 1, self.nodes])
+        Y = row[1 + 2*self.edges + 1:1 + 2*self.edges + 1 + self.possibleRightAnswer*self.nodes].reshape([self.possibleRightAnswer, 1, self.nodes])
 
         return X, Y, 0
 

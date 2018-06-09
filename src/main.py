@@ -6,14 +6,14 @@ import helper
 # Define the test data
 # generator = mann.MinPath(7, 10, 4, 8)
 #generator = mann.Copy(10,8)
-generator = mann.VertexCover(7, 10, 6, 75)
+generator = mann.VertexCover(9, 14, 6, 25)
 
 # Define the MANN
 cell = mann.MANNUnit("L1MANN")
 cell.addMemory(mann.BasicMemory("M1", 30, 16))
-cell.addController(mann.LSTMCell("C", 50))
+cell.addController(mann.LSTMCell("C", 60))
 
-head1 = mann.DNCHead("Head1", 2)
+head1 = mann.DNCHead("Head1", 3)
 head1.setCosSimMask(True)
 
 cell.addHead(head1)
@@ -22,7 +22,7 @@ cell.addHead(head1)
 #cell = mann.LSTMCell("LSTM1", 40)
 
 # Define constants
-TrainSetSize = 100000
+TrainSetSize = 1000000
 TestSetSize = 10000
 BatchSize = 128
 TrainSteps = 100
