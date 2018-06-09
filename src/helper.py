@@ -18,25 +18,14 @@ def map(name, input, outputSize, r=tf.AUTO_REUSE):
             b = tf.get_variable("B", initializer=tf.random_normal([int(outputSize)]))
             return tf.matmul(input, m) + b
 
-def makeStartState(name, shape):
-    with tf.variable_scope("init"):
-        product = 1
-        for i in shape:
-            product = product * i
+def getBatchWeight(name, size, batches=None):
+    w = tf.get_variable(name, initializer=tf.random_normal(size))
 
-        C = tf.constant([[1]], dtype=tf.float32)
-        O = tf.tanh(map(name, C, product, False))
-        return tf.reshape(O, shape)
+    if batches is not None:
+        w = tf.tile(tf.expand_dims(w, 0), [batches] + [1]*len(size))
 
-def makeStartStateBatch(name, batchSize, shape):
-    with tf.variable_scope("init"):
-        product = 1
-        for i in shape:
-            product = product * i
-
-        C = tf.constant([[1]], dtype=tf.float32)
-        O = tf.tanh(map(name, C, product, False))
-        return tf.expand_dims(tf.ones(shape, tf.float32), 0) * O
+    check(w, size, batches)
+    return w
 
 def printStats(variables, full=False):
     if full:
@@ -51,14 +40,6 @@ def printStats(variables, full=False):
             variable_parameters *= dim.value
         total_parameters += variable_parameters
     print("Number of parameters in model: " + str(total_parameters))
-
-def getTrainableConstant(name, size, batches=None):
-    state = tf.get_variable(name, initializer=tf.random_normal([int(size)]))
-
-    if batches is not None:
-        state = tf.reshape(tf.tile(state, [batches]), [batches, int(size)])
-
-    return state
 
 def check(t, shape, batchSize):
     if batchSize is not None:

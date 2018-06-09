@@ -11,8 +11,10 @@ class MemoryBase:
             setup(self, batchSize): Setup the start variables
     '''
 
-    def __init__(self, name):
+    def __init__(self, name, length, bitDepth):
         self.name = name
+        self.length = length
+        self.bitDepth = bitDepth
         self.ops = []
 
     def queueWrite(self, w, erase, add):

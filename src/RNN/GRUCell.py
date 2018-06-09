@@ -18,7 +18,7 @@ class GRUCell(RNNBase):
                 else:
                     batchSize = None
 
-                self.output = helper.getTrainableConstant("startOuput", self.stateSize, batchSize)
+                self.output = helper.getBatchWeight("startOuput", [self.stateSize], batchSize)
 
             cc = tf.concat([input,self.output], axis=-1)
 
