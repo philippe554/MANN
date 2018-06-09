@@ -27,6 +27,10 @@ class VertexCover(DataGenBase):
     def makeDataset(self, amount, token):
         file = os.path.join(os.getcwd(), os.pardir, "data", self.name, "RawVertexCover-" + str(amount) + "-" + str(self.nodes) + "-" + str(self.edges) + ".csv")
 
+        x = []
+        y = []
+        c = {}
+
         with open(os.path.abspath(file)) as f:
             for row in f:
                 r = np.fromstring(row, dtype=int, sep=',')
