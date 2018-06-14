@@ -1,0 +1,71 @@
+
+@startuml
+abstract class RNNBase
+abstract class HeadBase
+abstract class MemoryBase
+
+RNNBase <|-- MANNCell
+RNNBase <|-- LSTMCell
+RNNBase <|-- GRUCell
+RNNBase <|-- FFCell
+
+RNNBase : build()
+
+LSTMCell : buildTimeLayer()
+LSTMCell : Tensor prevState
+LSTMCell : Tensor prevOutput
+GRUCell : buildTimeLayer()
+GRUCell : Tensor output
+FFCell : buildTimeLayer()
+
+RNNBase : String name
+
+HeadBase <|-- DNCHead
+HeadBase <|-- NTMHead
+
+HeadBase : String name
+
+HeadBase : buildWriteHead()
+HeadBase : buildReadHead()
+HeadBase : getCosSimSoftMax()
+
+DNCHead : getWW()
+DNCHead : getWR()
+
+NTMHead : getWW()
+NTMHead : getWR()
+
+MemoryBase <|-- ZeroMemory
+MemoryBase <|-- WeightMemory
+MemoryBase <|-- ASymZeroMemory
+
+ZeroMemory : setup()
+WeightMemory : setup()
+ASymZeroMemory : setup()
+
+MemoryBase : String name
+MemoryBase : int length
+MemoryBase : int bitDepth
+MemoryBase : Tensor[] memory
+
+MemoryBase : queueWrite()
+MemoryBase : write()
+MemoryBase : read()
+
+MANNCell *-- MemoryBase
+MANNCell *-- HeadBase
+MANNCell *-- RNNBase
+
+MANNCell : String name
+
+MANNCell : MemoryBase memory
+MANNCell : HeadBase[] heads
+MANNCell : RNNBase controller
+
+MANNCell : addMemory()
+MANNCell : addController()
+MANNCell : addHead()
+MANNCell : setReadPeepHole()
+MANNCell : buildTimeLayer()
+
+@enduml

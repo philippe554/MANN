@@ -18,10 +18,8 @@ cell.addController(mann.LSTMCell("C", 60))
 
 head1 = mann.DNCHead("Head1", 3)
 #head1.setCosSimMask(True)
-
 cell.addHead(head1)
 
-#cell.setReadPeepHole()
 
 #cell = mann.LSTMCell("LSTM1", 40)
 
@@ -127,5 +125,3 @@ with tf.Session() as sess:
             avgTrainLoss = 0
 
             generator.save(sess, i, int(trainLoss))
-
-
