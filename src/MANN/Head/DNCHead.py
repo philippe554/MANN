@@ -10,7 +10,6 @@ class DNCHead(HeadBase):
         self.wWriteList = [tf.zeros([self.batchSize, self.memory.length])]
         self.wReadList = [tf.zeros([self.batchSize, self.amountReadHeads, self.memory.length])]
 
-        self.u = tf.zeros([self.batchSize, self.memory.length])
         self.p = tf.zeros([self.batchSize, self.memory.length])
         self.l = tf.zeros([self.batchSize, self.memory.length, self.memory.length])
 
@@ -18,24 +17,23 @@ class DNCHead(HeadBase):
         assert helper.check(self.lMask, [self.memory.length, self.memory.length], self.batchSize)
 
     def getWW(self, O):
-        mapping = [self.amountReadHeads, self.memory.bitDepth, 1, 1, 1]
+        mapping = [self.memory.bitDepth, 1, 1, 1]
         o = helper.map("map_wwo", O, np.sum(mapping))
-        o1, o2, o3, o4, o5 = tf.split(o, mapping, -1)
+        o1, o2, o3, o4 = tf.split(o, mapping, -1)
 
-        f = tf.sigmoid(o1)
-        self.u = self.getU(f, self.u, self.wWriteList[-1], self.wReadList[-1])
-        a = self.getA(self.u)
+        u = self.memory.getU()
+        a = self.getA(u)
 
-        kW = tf.nn.softplus(o2)
-        bW = tf.nn.softplus(o3) + 1
+        kW = tf.nn.softplus(o1)
+        bW = tf.nn.softplus(o2) + 1
         if self.cosSimMask:
             mask = tf.sigmoid(helper.map("map_ww_mask", O, self.memory.bitDepth))
             c = self.getCosSimSoftMax(kW, bW, mask)
         else:
             c = self.getCosSimSoftMax(kW, bW)
 
-        gw = tf.sigmoid(o4)
-        ga = tf.sigmoid(o5)
+        gw = tf.sigmoid(o3)
+        ga = tf.sigmoid(o4)
 
         w = gw * (ga*a + (1-ga)*c)
         assert helper.check(w, [self.memory.length], self.batchSize)
@@ -43,9 +41,9 @@ class DNCHead(HeadBase):
         return w
 
     def getWR(self, O):
-        mapping = [self.amountReadHeads * self.memory.bitDepth, self.amountReadHeads, self.amountReadHeads * 3]
+        mapping = [self.amountReadHeads * self.memory.bitDepth, self.amountReadHeads, self.amountReadHeads * 3, self.amountReadHeads]
         o = helper.map("map_wro", O, np.sum(mapping))
-        o1, o2, o3 = tf.split(o, mapping, -1)
+        o1, o2, o3, o4 = tf.split(o, mapping, -1)
 
         self.l = self.getL(self.l, self.wWriteList[-1], self.p)
 
@@ -73,23 +71,10 @@ class DNCHead(HeadBase):
 
         self.p = self.getP(self.p, self.wWriteList[-1])
 
-        return w        
+        f = tf.sigmoid(o4)
+        self.memory.queueForget(1-(tf.expand_dims(f, axis=-1)*w))
 
-    def getU(self, f, _u, _wW, _wR):
-        assert helper.check(f, [self.amountReadHeads], self.batchSize)
-        assert helper.check(_u, [self.memory.length], self.batchSize)
-        assert helper.check(_wW, [self.memory.length], self.batchSize)
-        assert helper.check(_wR, [self.amountReadHeads, self.memory.length], self.batchSize)
-
-        #If a reading head reads a memory adress in t-1, and the free gate is activated, release the memory
-        v = tf.reduce_prod(1-(tf.expand_dims(f, axis=-1)*_wR), axis=-2)
-        assert helper.check(v, [self.memory.length], self.batchSize)
-
-        #If you write to a memory adress, reserve it
-        u = (_u + _wW - (_u*_wW)) * v
-        assert helper.check(u, [self.memory.length], self.batchSize)
-        
-        return u
+        return w
 
     def getA(self, u):
         assert helper.check(u, [self.memory.length], self.batchSize)

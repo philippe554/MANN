@@ -39,7 +39,7 @@ class NTMHead(HeadBase):
 
         #wm can be negtive -> power will push it into the complex domain
         pow = tf.pow(wm, y)
-        w = pow / (tf.reduce_sum(pow, axis=-1, keep_dims=True)+0.001)
+        w = pow / (tf.reduce_sum(pow, axis=-1, keepdims=True)+0.001)
 
         assert helper.check(w, [self.memory.length], self.batchSize)
         return w

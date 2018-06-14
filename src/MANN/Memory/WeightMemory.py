@@ -8,3 +8,4 @@ class WeightMemory(MemoryBase):
         self.batchSize = batchSize
 
         self.M = [helper.getBatchWeight("MInit", [self.length, self.bitDepth], self.batchSize)]
+        self.u = [helper.getBatchWeight("uInit", [self.length], self.batchSize)]

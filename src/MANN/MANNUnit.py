@@ -28,11 +28,11 @@ class MANNUnit(RNNBase):
             for head in self.heads:
                 head.buildWriteHead(O)
 
-            #Apply all memory operations at once
-            self.memory.write()
-
             for head in self.heads:
                 head.buildReadHead(O)
+
+            # Apply all memory operations at once
+            self.memory.runQueued()
 
             if self.readPeepHole:
                 prevReads = [head.readList[-1] for head in self.heads]

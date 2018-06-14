@@ -8,10 +8,17 @@ class ASymZeroMemory(MemoryBase):
         self.batchSize = batchSize
 
         if self.batchSize is not None:
-            p1 = tf.ones([self.batchSize, 1, self.bitDepth])
-            p2 = tf.zeros([self.batchSize, self.length-1, self.bitDepth])
-        else:
-            p1 = tf.ones([1, self.bitDepth])
-            p2 = tf.zeros([self.length - 1, self.bitDepth])
+            m1 = tf.ones([self.batchSize, 1, self.bitDepth])
+            m2 = tf.zeros([self.batchSize, self.length-1, self.bitDepth])
 
-        self.M = [tf.concat([p1, p2], axis=-2)]
+            u1 = tf.ones([self.batchSize, 1])
+            u2 = tf.zeros([self.batchSize, self.length - 1])
+        else:
+            m1 = tf.ones([1, self.bitDepth])
+            m2 = tf.zeros([self.length - 1, self.bitDepth])
+
+            u1 = tf.ones([1])
+            u2 = tf.zeros([self.length - 1])
+
+        self.M = [tf.concat([m1, m2], axis=-2)]
+        self.u = [tf.concat([u1, u2], axis=-1)]
