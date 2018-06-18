@@ -4,6 +4,8 @@ abstract class RNNBase
 abstract class HeadBase
 abstract class MemoryBase
 
+skinparam ranksep 20
+
 RNNBase <|-- MANNCell
 RNNBase <|-- LSTMCell
 RNNBase <|-- GRUCell
